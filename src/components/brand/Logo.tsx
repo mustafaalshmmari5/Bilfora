@@ -1,26 +1,14 @@
 import * as React from "react";
 import { LogoSymbol } from "./LogoSymbol";
 
-/**
- * Bilfora logo: the isometric block symbol paired with the Arabic wordmark
- * (بلفورا) set in Thmanyah Serif Display. All colors resolve from CSS tokens,
- * so a token change re-themes the mark everywhere.
- *
- * Use `variant="symbol"` where there is no room for type (collapsed sidebar,
- * app icons); the other variants render symbol + wordmark.
- */
-
 export type LogoVariant = "wordmark" | "lockup" | "stacked" | "symbol";
 export type LogoColor = "brand" | "ink" | "onDark" | "mono";
 
 export interface LogoProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: LogoVariant;
   color?: LogoColor;
-  /** Font size in px that drives the whole mark's scale. */
   size?: number;
-  /** Show the accent dot after the wordmark. Off by default, since the symbol carries the accent. */
   dot?: boolean;
-  /** Render the block symbol alongside the wordmark. */
   symbol?: boolean;
 }
 
@@ -42,8 +30,6 @@ export function Logo({
   ...rest
 }: LogoProps) {
   const palette = PALETTES[color] ?? PALETTES.brand;
-
-  /* Thin strokes vanish below ~24px, so scale the weight up as the mark shrinks. */
   const markSize = size * 0.95;
   const mark = (
     <LogoSymbol
@@ -56,17 +42,13 @@ export function Logo({
 
   if (variant === "symbol") {
     return (
-      <span
-        className={className}
-        style={{ display: "inline-flex", alignItems: "center", ...style }}
-        {...rest}
-      >
+      <span className={className} style={{ display: "inline-flex", alignItems: "center", ...style }} {...rest}>
         <LogoSymbol
           size={size}
           weight={size < 24 ? 4 : 2.5}
           style={{ color: palette.mark }}
           role="img"
-          aria-label="بلفورا"
+          aria-label="نظام حسابات SPC"
         />
       </span>
     );
@@ -84,7 +66,7 @@ export function Logo({
         alignItems: "flex-start",
       }}
     >
-      بلفورا
+      نظام حسابات SPC
       {dot && (
         <span
           aria-hidden="true"
@@ -102,30 +84,6 @@ export function Logo({
     </span>
   );
 
-  if (variant === "lockup") {
-    return (
-      <span
-        className={className}
-        style={{ display: "inline-flex", alignItems: "center", gap: size * 0.32, fontSize: size, ...style }}
-        {...rest}
-      >
-        {symbol && mark}
-        {word}
-        <span
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontSize: size * 0.5,
-            color: palette.sub,
-            letterSpacing: "0.02em",
-          }}
-        >
-          Bilfora
-        </span>
-      </span>
-    );
-  }
-
   if (variant === "stacked") {
     return (
       <span
@@ -135,18 +93,6 @@ export function Logo({
       >
         {symbol && mark}
         {word}
-        <span
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontWeight: 500,
-            fontSize: size * 0.26,
-            color: palette.sub,
-            letterSpacing: "0.28em",
-            textTransform: "uppercase",
-          }}
-        >
-          Bilfora
-        </span>
       </span>
     );
   }
@@ -154,7 +100,7 @@ export function Logo({
   return (
     <span
       className={className}
-      style={{ display: "inline-flex", alignItems: "center", gap: size * 0.26, fontSize: size, ...style }}
+      style={{ display: "inline-flex", alignItems: "center", gap: size * 0.32, fontSize: size, ...style }}
       {...rest}
     >
       {symbol && mark}

@@ -10,8 +10,8 @@ import { Analytics } from "@vercel/analytics/react"
 /* Icons are picked up from the app/ file conventions: icon.svg, favicon.ico
    and apple-icon.png. Declaring `icons` here would override those. */
 export const metadata: Metadata = {
-	title: "بلفورا",
-	description: "فواتير احترافية جذابة وسريعة.",
+	title: "نظام حسابات SPC",
+	description: "نظام داخلي لإدارة حسابات SPC والفواتير والمدفوعات.",
 };
 
 export default function RootLayout({
