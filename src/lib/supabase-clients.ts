@@ -8,7 +8,7 @@ const buildClient = (): Client => {
 	const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 	if (!supabaseUrl || !supabaseAnonKey) {
-		throw new Error("Missing Supabase URL or Anon Key");
+		throw new Error("Missing Supabase URL or Publishable Key");
 	}
 
 	return createBrowserClient(supabaseUrl, supabaseAnonKey);
