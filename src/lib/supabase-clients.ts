@@ -3,15 +3,26 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 type Client = SupabaseClient;
 
-const buildClient = (): Client => {
-	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-	const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const FALLBACK_SUPABASE_URL = "https://xdjumeoydjhribkmjkvc.supabase.co";
+const FALLBACK_PUBLISHABLE_KEY = "sb_publishable_Yo64cO9q-yhkyL12O9xo7g_nyXUc-dN";
 
-	if (!supabaseUrl || !supabaseAnonKey) {
+const buildClient = (): Client => {
+	const directSupabaseUrl =
+		process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_SUPABASE_URL;
+	const supabaseUrl =
+		typeof window !== "undefined"
+			? `${window.location.origin}/api/supabase`
+			: directSupabaseUrl;
+	const supabasePublishableKey =
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+		FALLBACK_PUBLISHABLE_KEY;
+
+	if (!supabaseUrl || !supabasePublishableKey) {
 		throw new Error("Missing Supabase URL or Publishable Key");
 	}
 
-	return createBrowserClient(supabaseUrl, supabaseAnonKey);
+	return createBrowserClient(supabaseUrl, supabasePublishableKey);
 };
 
 const lazyClient = (): Client => {
@@ -25,16 +36,5 @@ const lazyClient = (): Client => {
 	});
 };
 
-/**
- * Persistent client → uses Cookies
- * Used for standard interaction with Supabase where Middleware protection is needed.
- */
 export const supabasePersistent: Client = lazyClient();
-
-/**
- * Session client → Redirects to Persistent client
- * Maintaining export for backward compatibility, but since we are using Cookies (which are domain-wide),
- * distinct storage strategies (localStorage vs sessionStorage) are less relevant for Middleware auth.
- * Both will now effectively use the same cookie-based session.
- */
 export const supabaseSession: Client = lazyClient();
