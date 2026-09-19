@@ -1,281 +1,179 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
- import { ArrowRight, FileText, TrendingUp, DollarSign, AlertCircle } from "lucide-react";
-import InvoiceCreationModal from "@/components/InvoiceCreationModal";
-import QuickClientModal from "@/components/QuickClientModal";
-import QuickProductModal from "@/components/QuickProductModal";
-import { useRouter } from "next/navigation";
-import { m } from "framer-motion";
-import LoadingState from "@/components/LoadingState";
-import DashboardQuickActions from "@/components/dashboard/DashboardQuickActions";
-import MonthlyStatsCards from "@/components/dashboard/MonthlyStatsCards";
-import MonthlyRevenueChart from "@/components/dashboard/MonthlyRevenueChart";
-import RecentInvoicesList from "@/components/dashboard/RecentInvoicesList";
-import { useDashboardData } from "@/hooks/useDashboardData";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Heading, Text, Card, Price } from "@/components/ui";
-import { cn } from "@/lib/utils";
+import { Building2, WalletCards, BanknoteArrowDown, CircleDollarSign, Search, Plus, BellRing, ArrowLeft } from "lucide-react";
+import { supabasePersistent } from "@/lib/supabase-clients";
 
-import { layout } from "@/lib/ui/tokens";
+type CompanyBalance = {
+  id: string;
+  name: string;
+  sap_code: string;
+  main_service: string | null;
+  currency: "IQD" | "USD";
+  total_due: number | string;
+  total_paid: number | string;
+  balance: number | string;
+  next_reminder_date: string | null;
+};
+
+const money = (value: number, currency: string) =>
+  new Intl.NumberFormat("ar-IQ", { maximumFractionDigits: currency === "IQD" ? 0 : 2 }).format(value) +
+  " " + currency;
 
 export default function DashboardPage() {
-	const router = useRouter();
+  const [companies, setCompanies] = useState<CompanyBalance[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
-	// Month/Year selector state
-	const now = new Date();
-	const [selectedYear] = useState(now.getFullYear());
-	const [selectedMonth] = useState(now.getMonth());
+  useEffect(() => {
+    const load = async () => {
+      const { data, error } = await supabasePersistent
+        .from("spc_company_balances")
+        .select("*")
+        .order("updated_at", { ascending: false });
+      if (!error) setCompanies((data ?? []) as CompanyBalance[]);
+      setLoading(false);
+    };
+    load();
+  }, []);
 
-	// Modals state
-	const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-	const [showClientModal, setShowClientModal] = useState(false);
-	const [showProductModal, setShowProductModal] = useState(false);
+  const totals = useMemo(() => {
+    return companies.reduce(
+      (acc, c) => {
+        const due = Number(c.total_due || 0);
+        const paid = Number(c.total_paid || 0);
+        const bal = Number(c.balance || 0);
+        acc.due += due;
+        acc.paid += paid;
+        acc.balance += bal;
+        if (bal > 0) acc.open += 1;
+        return acc;
+      },
+      { due: 0, paid: 0, balance: 0, open: 0 }
+    );
+  }, [companies]);
 
-	// Fetch Data using React Query
-	const {
-		user,
-		profile,
-		monthlyStats: stats,
-		dailyRevenue,
-		recentInvoices,
-		isLoading
-	} = useDashboardData(selectedYear, selectedMonth);
+  const filtered = companies.filter((c) =>
+    [c.name, c.sap_code, c.main_service ?? ""]
+      .join(" ")
+      .toLowerCase()
+      .includes(query.toLowerCase())
+  );
 
-	// Redirect if not authenticated (client-side protection)
-	// Note: Middleware usually handles this, but keeping it as backup
-	useEffect(() => {
-		if (!isLoading && !user) {
-			router.push("/login");
-		}
-	}, [user, isLoading, router]);
+  return (
+    <div className="space-y-7 pb-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-black text-foreground">لوحة حسابات الشركات</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            متابعة الاستحقاقات، المقبوضات، الأرصدة والتذكيرات من مكان واحد.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/companies?new=1"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3 font-bold text-white shadow-lg shadow-brand/20 hover:bg-brand-hover"
+        >
+          <Plus size={18} />
+          إضافة شركة
+        </Link>
+      </div>
 
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard title="إجمالي الاستحقاقات" value={totals.due} icon={WalletCards} />
+        <StatCard title="إجمالي المقبوض" value={totals.paid} icon={BanknoteArrowDown} />
+        <StatCard title="الرصيد المتبقي" value={totals.balance} icon={CircleDollarSign} important />
+        <StatCard title="شركات عليها رصيد" value={totals.open} icon={Building2} count />
+      </div>
 
-	// Derived UI state
-	const userName = profile?.full_name || "";
+      <div className="rounded-3xl border border-border bg-surface shadow-sm">
+        <div className="flex flex-col gap-4 border-b border-border p-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-xl font-bold">حسابات الشركات</h2>
+            <p className="text-sm text-muted-foreground">اضغط على أي شركة لفتح كشف حسابها.</p>
+          </div>
+          <div className="relative w-full md:w-80">
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={17} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="بحث بالاسم أو رقم SAP أو الخدمة"
+              className="w-full rounded-2xl border border-border bg-surface-2 py-3 pr-11 pl-4 text-sm outline-none focus:border-brand"
+            />
+          </div>
+        </div>
 
+        {loading ? (
+          <div className="p-10 text-center text-muted-foreground">جاري تحميل الحسابات...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-12 text-center">
+            <Building2 className="mx-auto mb-3 text-muted-foreground" size={42} />
+            <p className="font-bold">ماكو شركات مسجلة حالياً</p>
+            <p className="mt-1 text-sm text-muted-foreground">ابدأ بإضافة أول شركة ورقم SAP مالها.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {filtered.map((company) => {
+              const balance = Number(company.balance || 0);
+              return (
+                <Link
+                  key={company.id}
+                  href={"/dashboard/companies/" + company.id}
+                  className="grid grid-cols-1 gap-4 p-5 transition hover:bg-surface-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] md:items-center"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <div className="rounded-xl bg-brand/10 p-2 text-brand"><Building2 size={18} /></div>
+                      <div>
+                        <p className="font-bold">{company.name}</p>
+                        <p className="text-xs text-muted-foreground">SAP: {company.sap_code}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">الخدمة</p>
+                    <p className="mt-1 text-sm font-medium">{company.main_service || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">المطلوب</p>
+                    <p className="mt-1 text-sm font-bold">{money(Number(company.total_due || 0), company.currency)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">الباقي</p>
+                    <p className={"mt-1 text-sm font-black " + (balance > 0 ? "text-amber-600" : "text-emerald-600")}>
+                      {money(balance, company.currency)}
+                    </p>
+                    {company.next_reminder_date && (
+                      <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <BellRing size={11} /> {company.next_reminder_date}
+                      </p>
+                    )}
+                  </div>
+                  <ArrowLeft className="text-muted-foreground" size={18} />
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
-
-
-
-
-	const monthName = useMemo(() => {
-		const months = [
-			"يناير",
-			"فبراير",
-			"مارس",
-			"أبريل",
-			"مايو",
-			"يونيو",
-			"يوليو",
-			"أغسطس",
-			"سبتمبر",
-			"أكتوبر",
-			"نوفمبر",
-			"ديسمبر",
-		];
-		return months[selectedMonth];
-	}, [selectedMonth]);
-
-	const openInvoiceModal = () => setShowInvoiceModal(true);
-	const closeInvoiceModal = () => setShowInvoiceModal(false);
-
-	const openClientModal = () => setShowClientModal(true);
-	const closeClientModal = () => setShowClientModal(false);
-
-	const openProductModal = () => setShowProductModal(true);
-	const closeProductModal = () => setShowProductModal(false);
-
-	// Query Invalidation Helper
-	const queryClient = useQueryClient();
-	const refreshData = () => {
-		queryClient.invalidateQueries({ queryKey: ["monthlyStats"] });
-		queryClient.invalidateQueries({ queryKey: ["dailyRevenue"] });
-		queryClient.invalidateQueries({ queryKey: ["recentInvoices"] });
-	};
-
-	// Build analytics URL with month params
-	const monthStr = String(selectedMonth + 1).padStart(2, "0");
-	const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-	const analyticsUrl = `/dashboard/analytics?from=${selectedYear}-${monthStr}-01&to=${selectedYear}-${monthStr}-${lastDay}`;
-
-	if (isLoading) {
-		return <LoadingState message="جاري تحميل لوحة التحكم..." />;
-	}
-
-	return (
-		<div className="space-y-6 pb-6">
-			{/* Header with Month Selector */}
-			<m.div
-				initial={{ opacity: 0, y: -10 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.6 }}
-				className={cn("flex flex-col md:flex-row md:items-center md:justify-between", layout.gap.standard)}
-			>
-				<div>
-					<Heading variant="h1" className="flex items-center gap-3">
-						مرحباً، {userName || "شريك النجاح"} 
-					</Heading>
-					<Text variant="body-large" color="muted" className="mt-2">
-						إليك نظرة عامة على أداء أعمالك هذا الشهر
-					</Text>
-				</div>
-				<div className={cn("flex items-center", layout.gap.standard)}>
-					<DashboardQuickActions
-						onCreateInvoice={openInvoiceModal}
-						onCreateClient={openClientModal}
-						onCreateProduct={openProductModal}
-					/>
-				</div>
-			</m.div>
-
-			{/* Monthly Stats Cards */}
-			<MonthlyStatsCards stats={stats} />
-
-			{/* Chart and Summary Row */}
-			<div className={cn("grid grid-cols-1 lg:grid-cols-3", layout.gap.large)}>
-				{/* Revenue Chart */}
-				<m.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.5 }}
-					className="lg:col-span-2"
-				>
-					<Card>
-						<div className="flex items-center justify-between mb-4">
-							<div>
-								<Heading variant="h3-subsection">
-									الإيرادات اليومية - {monthName} {selectedYear}
-								</Heading>
-								<Text variant="body-xs" color="muted" className="mt-1">توزيع الإيرادات على أيام الشهر</Text>
-							</div>
-							<div className={cn("flex items-center text-xs", layout.gap.standard)}>
-								<div className={cn("flex items-center", layout.gap.tight)}>
-									<div className="w-2 h-2 rounded-full bg-brand"></div>
-									<Text variant="body-xs" color="muted">الإجمالي</Text>
-								</div>
-								<div className={cn("flex items-center", layout.gap.tight)}>
-									<div className="w-2 h-2 rounded-full bg-green-500"></div>
-									<Text variant="body-xs" color="muted">المحصل</Text>
-								</div>
-							</div>
-						</div>
-						{dailyRevenue.length > 0 ? (
-							<MonthlyRevenueChart data={dailyRevenue} />
-						) : (
-							<div className="h-[280px] flex items-center justify-center text-disabled">
-								<Text variant="body-small">لا توجد بيانات لهذا الشهر</Text>
-							</div>
-						)}
-					</Card>
-				</m.div>
-
-				{/* Quick Summary */}
-				<m.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.6 }}
-				>
-					<Card hover>
-						<Heading variant="h3-subsection" className="mb-5">ملخص سريع</Heading>
-						<div className={layout.stack.standard}>
-							<div className="flex items-center justify-between p-3 bg-brand-soft rounded-xl border border-brand-soft-2 hover:bg-brand-soft-2 transition-colors group">
-								<div className={cn("flex items-center", layout.gap.standard)}>
-									<div className="p-2 bg-brand-soft-2 rounded-lg group-hover:scale-105 transition-transform">
-										<FileText className="text-brand" size={18} strokeWidth={2.5} />
-									</div>
-									<Text variant="body-small" className="font-medium">عدد الفواتير</Text>
-								</div>
-								<Text variant="body-small" className="font-bold">{stats.totalInvoices}</Text>
-							</div>
-							<div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100 hover:bg-green-100 transition-colors group">
-								<div className={cn("flex items-center", layout.gap.standard)}>
-									<div className="p-2 bg-green-100 rounded-lg group-hover:scale-105 transition-transform">
-										<TrendingUp className="text-green-600" size={18} strokeWidth={2.5} />
-									</div>
-									<Text variant="body-small" className="font-medium">معدل التحصيل</Text>
-								</div>
-								<Text variant="body-small" className="font-bold">
-									{stats.totalInvoices > 0
-										? ((stats.paidInvoices / stats.totalInvoices) * 100).toFixed(1)
-										: 0}%
-								</Text>
-							</div>
-							<div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors group">
-								<div className={cn("flex items-center", layout.gap.standard)}>
-									<div className="p-2 bg-blue-100 rounded-lg group-hover:scale-105 transition-transform">
-										<DollarSign className="text-blue-600" size={18} strokeWidth={2.5} />
-									</div>
-									<Text variant="body-small" className="font-medium">متوسط الفاتورة</Text>
-								</div>
-								<Price
-									amount={stats.totalInvoices > 0 ? stats.totalInvoiced / stats.totalInvoices : 0}
-									size="sm"
-									className="font-bold"
-								/>
-							</div>
-						</div>
-						{stats.overdueCount > 0 && (
-							<div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl flex items-center gap-2">
-								<AlertCircle className="text-orange-600 flex-shrink-0" size={16} />
-								<Text variant="body-xs" className="font-medium text-orange-800">
-									{stats.overdueCount} فاتورة متأخرة تحتاج متابعة
-								</Text>
-							</div>
-						)}
-					</Card>
-				</m.div>
-			</div>
-
-			{/* Recent Invoices List */}
-			<m.div
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ delay: 0.7 }}
-			>
-				<RecentInvoicesList invoices={recentInvoices} />
-			</m.div>
-
-			{/* Link to Analytics */}
-			<m.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 0.8 }}
-				className="flex justify-center pt-2"
-			>
-				<Link href={analyticsUrl}>
-					<button className="relative group bg-surface border border-brand-soft-2 hover:border-brand shadow-sm hover:shadow-md hover:shadow-brand text-muted-foreground hover:text-brand px-8 py-3.5 rounded-2xl transition-all duration-300 flex items-center gap-3">
-						<span className="font-medium">عرض التحليلات التفصيلية</span>
-						<div className="w-8 h-8 rounded-full bg-brand-soft flex items-center justify-center group-hover:bg-brand-soft-2 group-hover:text-brand transition-colors duration-300">
-							<ArrowRight size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-						</div>
-					</button>
-				</Link>
-			</m.div>
-
-			{/* Modals */}
-			<InvoiceCreationModal
-				isOpen={showInvoiceModal}
-				onClose={closeInvoiceModal}
-				onSuccess={refreshData}
-			/>
-			<QuickClientModal
-				isOpen={showClientModal}
-				onClose={closeClientModal}
-				onSuccess={() => {
-					refreshData();
-					closeClientModal();
-				}}
-			/>
-			<QuickProductModal
-				isOpen={showProductModal}
-				onClose={closeProductModal}
-				onSuccess={() => {
-					refreshData();
-					closeProductModal();
-				}}
-			/>
-		</div>
-	);
+function StatCard({ title, value, icon: Icon, important, count }: { title: string; value: number; icon: any; important?: boolean; count?: boolean }) {
+  return (
+    <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className={"rounded-2xl p-3 " + (important ? "bg-amber-50 text-amber-600" : "bg-brand/10 text-brand")}>
+          <Icon size={22} />
+        </div>
+      </div>
+      <p className="mt-5 text-sm text-muted-foreground">{title}</p>
+      <p className="mt-1 text-2xl font-black">
+        {count ? new Intl.NumberFormat("ar-IQ").format(value) : new Intl.NumberFormat("ar-IQ", { maximumFractionDigits: 0 }).format(value)}
+        {!count && <span className="mr-1 text-xs font-medium text-muted-foreground">IQD*</span>}
+      </p>
+      {!count && <p className="mt-1 text-[10px] text-muted-foreground">* ملخص رقمي؛ العملات تظهر منفصلة داخل حساب الشركة.</p>}
+    </div>
+  );
 }
