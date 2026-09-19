@@ -1,428 +1,143 @@
 "use client";
 
+import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { Logo } from "@/components/brand/Logo";
-import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import { m } from "framer-motion";
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogDescription,
-} from "@/components/dialog";
-import { Eye, EyeClosed, Check, Mail, User, Lock, ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { MultiStepLoader } from "@/components/ui/multi-step-loader";
+import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
+import { supabasePersistent } from "@/lib/supabase-clients";
 import { getAuthErrorMessage } from "@/utils/error-handling";
-import { Building2 } from "lucide-react";
-
-// Loading states for the multi-step loader
-const registerLoadingStates = [
-	{ text: "جارٍ إنشاء حسابك..." },
-	{ text: "تأمين بياناتك..." },
-	{ text: "إعداد لوحة التحكم..." },
-	{ text: "تمام! جارٍ إرسال رابط التفعيل..." },
-];
 
 export default function RegisterPage() {
-	const [formData, setFormData] = useState({
-        fullname: "",
-        email: "",
-        password: "",
-        accountType: "individual" as "individual" | "business",
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    const { data, error: signUpError } = await supabasePersistent.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        emailRedirectTo: `${location.origin}/confirmed`,
+        data: {
+          full_name: name.trim(),
+          account_type: "individual",
+        },
+      },
     });
 
-	const router = useRouter();
-	const [errors, setErrors] = useState<Record<string, string>>({});
-	const [showPassword, setShowPassword] = useState(false);
-	const [showConfirmModal, setShowConfirmModal] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
-	const [generalError, setGeneralError] = useState("");
-	const [showLoader, setShowLoader] = useState(false);
+    if (signUpError) {
+      setError(getAuthErrorMessage(signUpError));
+      setLoading(false);
+      return;
+    }
 
-	const validate = () => {
-		const newErrors: Record<string, string> = {};
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    if (data.session) {
+      router.replace("/dashboard");
+      router.refresh();
+      return;
+    }
 
-		if (!formData.fullname.trim()) newErrors.fullname = "الاسم مطلوب";
-		if (!formData.email.trim()) newErrors.email = "البريد مطلوب";
-		else if (!emailRegex.test(formData.email)) newErrors.email = "البريد غير صالح";
-		if (!formData.password) newErrors.password = "كلمة المرور مطلوبة";
-		else if (!passwordRegex.test(formData.password)) newErrors.password = "8 خانات على الأقل، حرف ورقم";
+    setMessage("تم إنشاء الحساب. إذا كان تأكيد البريد مفعّلاً، افتح رسالة التفعيل ثم سجّل الدخول.");
+    setLoading(false);
+  };
 
-		return newErrors;
-	};
+  return (
+    <main className="min-h-screen bg-surface-2 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="mb-6 flex justify-center">
+          <Logo size={24} />
+        </div>
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({ ...prev, [name]: value }));
-		setErrors((prev) => ({ ...prev, [name]: "" }));
-		setGeneralError("");
-	};
+        <div className="rounded-3xl border border-border bg-surface p-7 shadow-xl">
+          <div className="mb-7 text-center">
+            <h1 className="text-2xl font-black">إنشاء حساب النظام</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              حساب داخلي للوصول إلى حسابات الشركات.
+            </p>
+          </div>
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		const validationErrors = validate();
-		if (Object.keys(validationErrors).length > 0) {
-			setErrors(validationErrors);
-			return;
-		}
+          {error && <div className="mb-5 rounded-2xl bg-red-50 p-3 text-center text-sm text-red-600">{error}</div>}
+          {message && <div className="mb-5 rounded-2xl bg-emerald-50 p-3 text-center text-sm text-emerald-700">{message}</div>}
 
-		setIsLoading(true);
-		setGeneralError("");
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium">الاسم</label>
+              <div className="relative">
+                <User className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={17} />
+                <input
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="الاسم"
+                  className="w-full rounded-2xl border border-border bg-surface-2 py-3.5 pr-11 pl-4 outline-none focus:border-brand"
+                />
+              </div>
+            </div>
 
-		try {
-			const { data, error } = await supabase.auth.signUp({
-				email: formData.email,
-				password: formData.password,
-				options: {
-					emailRedirectTo: `${location.origin}/confirmed`,
-					data: {
-						full_name: formData.fullname,
-						account_type: formData.accountType,
-					},
-				},
-			});
+            <div>
+              <label className="mb-2 block text-sm font-medium">البريد الإلكتروني</label>
+              <div className="relative">
+                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={17} />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full rounded-2xl border border-border bg-surface-2 py-3.5 pr-11 pl-4 outline-none focus:border-brand"
+                />
+              </div>
+            </div>
 
-			if (error) {
-				setGeneralError(getAuthErrorMessage(error));
-				setFormData((p) => ({ ...p, password: "" }));
-				return;
-			}
-			
-			// Supabase returns a fake user with empty identities for existing emails
-			// (to prevent email enumeration). Detect and block this.
-			if (data?.user?.identities?.length === 0) {
-				setGeneralError("هذا البريد مسجّل مسبقًا. سجّل دخولك أو استعد كلمة المرور");
-				setFormData((p) => ({ ...p, password: "" }));
-				return;
-			}
+            <div>
+              <label className="mb-2 block text-sm font-medium">كلمة المرور</label>
+              <div className="relative">
+                <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={17} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  minLength={8}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="8 خانات على الأقل"
+                  className="w-full rounded-2xl border border-border bg-surface-2 py-3.5 pr-11 pl-11 outline-none focus:border-brand"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </div>
 
-			// Show multi-step loader, then show success modal
-			setShowLoader(true);
-			setTimeout(() => {
-				setShowLoader(false);
-				setShowConfirmModal(true);
-			}, 5000); // Show loader for ~5 seconds
-		} catch (error) {
-			setGeneralError(getAuthErrorMessage(error));
-		} finally {
-			setIsLoading(false);
-		}
-	};
+            <button
+              disabled={loading}
+              className="w-full rounded-2xl bg-brand py-3.5 font-bold text-white hover:bg-brand-hover disabled:opacity-60"
+            >
+              {loading ? "جاري إنشاء الحساب..." : "إنشاء الحساب"}
+            </button>
+          </form>
 
-	const getPasswordStrength = (password: string) => {
-		if (!password) return { strength: 0, color: "bg-surface-inset", text: "" };
-		let score = 0;
-		if (password.length >= 8) score++;
-		if (/[A-Za-z]/.test(password)) score++;
-		if (/\d/.test(password)) score++;
-		if (/[^A-Za-z\d]/.test(password)) score++;
-		if (score <= 1) return { strength: score, color: "bg-red-400", text: "ضعيفة" };
-		if (score === 2) return { strength: score, color: "bg-yellow-400", text: "متوسطة" };
-		if (score === 3) return { strength: score, color: "bg-blue-400", text: "جيدة" };
-		return { strength: score, color: "bg-green-400", text: "قوية" };
-	};
-
-	const passwordStrength = getPasswordStrength(formData.password);
-
-	return (
-		<>
-			{/* Multi-Step Loader */}
-			<MultiStepLoader
-				loadingStates={registerLoadingStates}
-				loading={showLoader}
-				duration={1200}
-				loop={false}
-			/>
-			
-			<div className="min-h-screen bg-surface-2 relative overflow-hidden flex items-center justify-center px-4 py-12">
-				{/* Aurora Background - Light Mode */}
-			<div className="absolute inset-0 overflow-hidden">
-				<m.div
-					animate={{
-						x: [0, 50, 0],
-						y: [0, 30, 0],
-						scale: [1, 1.1, 1],
-					}}
-					transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-					className="absolute -top-1/2 -left-1/4 w-[800px] h-[800px] bg-gradient-to-br from-brand/20 via-brand/10 to-transparent rounded-full blur-[120px]"
-				/>
-				<m.div
-					animate={{
-						x: [0, -30, 0],
-						y: [0, 50, 0],
-						scale: [1, 1.2, 1],
-					}}
-					transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-					className="absolute -bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-gradient-to-tl from-teal-300/20 via-cyan-200/10 to-transparent rounded-full blur-[100px]"
-				/>
-				<m.div
-					animate={{
-						x: [0, 40, 0],
-						y: [0, -40, 0],
-					}}
-					transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-					className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-gradient-to-bl from-cyan-300/15 via-teal-200/10 to-transparent rounded-full blur-[80px]"
-				/>
-				<m.div
-					animate={{
-						x: [0, -20, 0],
-						y: [0, 20, 0],
-					}}
-					transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-					className="absolute bottom-1/3 left-1/3 w-[300px] h-[300px] bg-gradient-to-tr from-cyan-200/20 to-transparent rounded-full blur-[60px]"
-				/>
-			</div>
-
-			{/* Glass Card */}
-			<m.div
-				initial={{ opacity: 0, y: 20, scale: 0.95 }}
-				animate={{ opacity: 1, y: 0, scale: 1 }}
-				transition={{ duration: 0.5 }}
-				className="relative z-10 w-full max-w-md"
-			>
-				<div className="bg-surface/70 backdrop-blur-2xl rounded-3xl border border-white/50 p-8 shadow-xl shadow-gray-200/50">
-					{/* Tab Toggle */}
-					<div className="flex items-center justify-center mb-8">
-						<div className="bg-surface-inset rounded-full p-1 flex">
-							<span className="px-5 py-2 text-sm font-medium bg-surface text-foreground rounded-full shadow-sm">
-								حساب جديد
-							</span>
-							<Link
-								href="/login"
-								className="px-5 py-2 text-sm font-medium text-subtle hover:text-muted-foreground transition-colors rounded-full"
-							>
-								تسجيل الدخول
-							</Link>
-						</div>
-					</div>
-
-					{/* Header */}
-					<div className="text-center mb-8">
-						<h1 className="text-2xl font-bold text-foreground mb-2">
-							أهلاً! خلّنا نبدأ
-						</h1>
-						<p className="text-subtle text-sm">
-							حسابك المجاني جاهز خلال ثواني
-						</p>
-					</div>
-
-					{/* Error */}
-					{generalError && (
-						<m.div
-							initial={{ opacity: 0, y: -10 }}
-							animate={{ opacity: 1, y: 0 }}
-							className="mb-6 p-3 bg-red-50 border border-red-100 rounded-xl"
-						>
-							<p className="text-red-600 text-sm text-center">{generalError}</p>
-						</m.div>
-					)}
-
-					<form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Account Type Selection */}
-                        <div className="flex bg-surface-inset p-1 rounded-xl mb-6">
-                            <button
-                                type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, accountType: "individual" }))}
-                                className={cn(
-                                    "flex-1 py-2 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2",
-                                    formData.accountType === "individual"
-                                        ? "bg-surface text-brand shadow-sm"
-                                        : "text-subtle hover:text-muted-foreground"
-                                )}
-                            >
-                                <User size={16} />
-                                فرد / مستقل
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, accountType: "business" }))}
-                                className={cn(
-                                    "flex-1 py-2 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2",
-                                    formData.accountType === "business"
-                                        ? "bg-surface text-brand shadow-sm"
-                                        : "text-subtle hover:text-muted-foreground"
-                                )}
-                            >
-                                <Building2 size={16} />
-                                منشأة / شركة
-                            </button>
-                        </div>
-
-						{/* Name */}
-						<div>
-							<label htmlFor="fullname" className="block text-sm font-medium text-muted-foreground mb-2">
-								الاسم
-							</label>
-							<div className="relative">
-								<User className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-disabled" />
-								<input
-									type="text"
-									id="fullname"
-									name="fullname"
-									value={formData.fullname}
-									onChange={handleChange}
-									placeholder="اسمك أو اسم منشأتك"
-									className={cn(
-										"block w-full rounded-xl bg-surface-2 border border-border py-4 pr-11 pl-4 text-foreground placeholder:text-disabled focus:bg-surface focus:border-brand focus:ring-2 focus:ring-brand/10 focus:outline-none transition-all text-sm leading-relaxed",
-										errors.fullname && "border-red-300 focus:border-red-500 focus:ring-red-500/10"
-									)}
-								/>
-							</div>
-							{errors.fullname && <p className="mt-1.5 text-xs text-red-500">{errors.fullname}</p>}
-						</div>
-
-						{/* Email */}
-						<div>
-							<label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-2">
-								البريد الإلكتروني
-							</label>
-							<div className="relative">
-								<Mail className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-disabled" />
-								<input
-									type="email"
-									id="email"
-									name="email"
-									value={formData.email}
-									onChange={handleChange}
-									placeholder="name@example.com"
-									className={cn(
-										"block w-full rounded-xl bg-surface-2 border border-border py-4 pr-11 pl-4 text-foreground placeholder:text-disabled focus:bg-surface focus:border-brand focus:ring-2 focus:ring-brand/10 focus:outline-none transition-all text-sm leading-relaxed",
-										errors.email && "border-red-300 focus:border-red-500 focus:ring-red-500/10"
-									)}
-								/>
-							</div>
-							{errors.email && <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>}
-						</div>
-
-						{/* Password */}
-					<div>
-						<label htmlFor="password" className="block text-sm font-medium text-muted-foreground mb-2">
-							كلمة المرور
-						</label>
-						<div className="relative">
-							<Lock className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-disabled" />
-							<input
-								type={showPassword ? "text" : "password"}
-								id="password"
-								name="password"
-								value={formData.password}
-								onChange={handleChange}
-								placeholder="8 خانات على الأقل"
-								className={cn(
-									"block w-full rounded-xl bg-surface-2 border border-border py-4 pr-11 pl-11 text-foreground placeholder:text-disabled placeholder:text-right focus:bg-surface focus:border-brand focus:ring-2 focus:ring-brand/10 focus:outline-none transition-all text-sm leading-relaxed",
-									errors.password && "border-red-300 focus:border-red-500 focus:ring-red-500/10"
-								)}
-							/>
-							<button
-								type="button"
-								onClick={() => setShowPassword((s) => !s)}
-								className="absolute left-4 top-1/2 -translate-y-1/2 text-disabled hover:text-muted-foreground"
-							>
-								{showPassword ? <EyeClosed size={16} /> : <Eye size={16} />}
-							</button>
-						</div>
-
-							{formData.password && (
-								<div className="mt-2.5 flex items-center gap-2">
-									<div className="flex gap-1 flex-1">
-										{[1, 2, 3, 4].map((level) => (
-											<div
-												key={level}
-												className={`h-1.5 flex-1 rounded-full transition-colors ${
-													level <= passwordStrength.strength ? passwordStrength.color : "bg-surface-inset"
-												}`}
-											/>
-										))}
-									</div>
-									<span className="text-xs text-subtle">{passwordStrength.text}</span>
-								</div>
-							)}
-							{errors.password && <p className="mt-1.5 text-xs text-red-500 pr-1">{errors.password}</p>}
-						</div>
-
-						{/* Submit */}
-						<m.button
-							type="submit"
-							disabled={isLoading}
-							whileHover={{ scale: 1.01 }}
-							whileTap={{ scale: 0.99 }}
-							className="w-full bg-brand text-white font-semibold py-3.5 px-4 rounded-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-brand-hover mt-6 shadow-lg shadow-brand"
-						>
-							{isLoading ? (
-								<>
-									<div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-									<span>لحظة...</span>
-								</>
-							) : (
-								<>
-									<span>يلا نبدأ!</span>
-									<ArrowRight className="h-4 w-4" />
-								</>
-							)}
-						</m.button>
-					</form>
-
-					{/* Footer */}
-					<p className="text-center text-xs text-disabled mt-6">
-						بإنشاء حسابك، أنت توافق على{" "}
-						<Link href="/terms" className="text-muted-foreground hover:text-brand underline">الشروط</Link>
-						{" "}و{" "}
-						<Link href="/privacy" className="text-muted-foreground hover:text-brand underline">الخصوصية</Link>
-					</p>
-				</div>
-
-				{/* Logo below card */}
-				<div className="flex items-center justify-center mt-8">
-					<Link href="/" className="flex items-center gap-2 text-disabled hover:text-brand transition-colors">
-						<Logo size={22} color="ink" />
-					</Link>
-				</div>
-			</m.div>
-
-			{/* Success Modal */}
-			<Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-				<DialogContent className="sm:max-w-md rounded-3xl text-center p-8">
-					<DialogHeader className="flex flex-col items-center gap-4">
-						<m.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ type: "spring", duration: 0.5 }}
-							className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30"
-						>
-							<Check className="w-10 h-10 text-white" />
-						</m.div>
-						<DialogTitle className="text-2xl font-bold text-foreground">
-							تمام!
-						</DialogTitle>
-						<DialogDescription className="text-subtle">
-							بس فعّل حسابك من الرابط اللي أرسلناه لبريدك
-							<br />
-							وبعدين سجّل دخولك وابدأ!
-						</DialogDescription>
-					</DialogHeader>
-					<DialogFooter className="mt-6 sm:justify-center">
-						<m.button
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
-							onClick={() => {
-								setShowConfirmModal(false);
-								router.push("/login");
-							}}
-							className="w-full bg-brand text-white font-bold py-3.5 px-6 rounded-xl hover:bg-brand-hover transition-colors shadow-lg shadow-brand"
-						>
-							تمام، خلّني أسجّل دخولي
-						</m.button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-		</div>
-		</>
-	);
+          <div className="mt-6 border-t border-border pt-5 text-center">
+            <Link href="/login" className="text-sm font-medium text-brand hover:underline">
+              عندك حساب؟ تسجيل الدخول
+            </Link>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
 }
