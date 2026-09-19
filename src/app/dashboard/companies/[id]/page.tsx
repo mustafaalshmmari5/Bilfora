@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Building2, Plus, BanknoteArrowDown, ReceiptText, BellRing, X } from "lucide-react";
+import { ArrowRight, Building2, Plus, BanknoteArrowDown, BellRing, X } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 
 type Company = {
@@ -105,7 +105,7 @@ export default function CompanyAccountPage() {
 function EntryModal({kind,companyId,currency,onClose,onSaved}:{kind:"due"|"payment"|"reminder";companyId:string;currency:string;onClose:()=>void;onSaved:()=>void}) {
   const [saving,setSaving]=useState(false); const [error,setError]=useState("");
   const today=new Date().toISOString().slice(0,10);
-  const [amount,setAmount]=useState(""); const [service,setService]=useState(""); const [date,setDate]=useState(today);
+  const [amount,setAmount]=useState(""); const [service,setService]=useState(""); const [date,setDate]=useState(today); const [dueDate,setDueDate]=useState("");
   const [reference,setReference]=useState(""); const [notes,setNotes]=useState(""); const [method,setMethod]=useState("تحويل"); const [title,setTitle]=useState("متابعة تحصيل");
 
   const submit=async(e:FormEvent)=>{
@@ -113,7 +113,7 @@ function EntryModal({kind,companyId,currency,onClose,onSaved}:{kind:"due"|"payme
     const {data}=await supabasePersistent.auth.getUser(); const user=data.user;
     if(!user){setError("انتهت الجلسة. سجل دخول مرة ثانية.");setSaving(false);return;}
     let result;
-    if(kind==="due") result=await supabasePersistent.from("spc_receivables").insert({company_id:companyId,created_by:user.id,service_name:service,amount:Number(amount),issue_date:date,reference_number:reference||null,notes:notes||null});
+    if(kind==="due") result=await supabasePersistent.from("spc_receivables").insert({company_id:companyId,created_by:user.id,service_name:service,amount:Number(amount),issue_date:date,due_date:dueDate||null,reference_number:reference||null,notes:notes||null});
     else if(kind==="payment") result=await supabasePersistent.from("spc_payments").insert({company_id:companyId,created_by:user.id,amount:Number(amount),payment_date:date,payment_method:method,reference_number:reference||null,notes:notes||null});
     else result=await supabasePersistent.from("spc_reminders").insert({company_id:companyId,created_by:user.id,remind_on:date,title,notes:notes||null});
     if(result.error)setError(result.error.message); else onSaved();
@@ -128,8 +128,8 @@ function EntryModal({kind,companyId,currency,onClose,onSaved}:{kind:"due"|"payme
         {kind!=="reminder"&&<Input label={"المبلغ ("+currency+")*"} value={amount} onChange={setAmount} type="number" required/>}
         {kind==="payment"&&<Input label="طريقة القبض" value={method} onChange={setMethod}/>}
         {kind==="reminder"&&<Input label="عنوان التذكير" value={title} onChange={setTitle}/>}
-        <Input label={kind==="reminder"?"تاريخ التذكير":"التاريخ"} value={date} onChange={setDate} type="date" required/>
-        {kind!=="reminder"&&<Input label="رقم الفاتورة / المرجع (اختياري)" value={reference} onChange={setReference}/>}
+        <Input label={kind==="reminder"?"تاريخ التذكير":"تاريخ الحركة"} value={date} onChange={setDate} type="date" required/>\n        {kind==="due"&&<Input label="تاريخ الاستحقاق" value={dueDate} onChange={setDueDate} type="date"/>}
+        {kind!=="reminder"&&<Input label="رقم المرجع (اختياري)" value={reference} onChange={setReference}/>}
         <Input label="ملاحظات" value={notes} onChange={setNotes}/>
       </div>
       {error&&<p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>}
