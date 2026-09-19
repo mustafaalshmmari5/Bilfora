@@ -7,7 +7,7 @@ import { Redis } from "@upstash/redis";
 // convention in favour of `proxy`. Same behaviour, and proxy always runs on
 // the Node.js runtime. See https://nextjs.org/docs/messages/middleware-to-proxy
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_URL = "https://xdjumeoydjhribkmjkvc.supabase.co";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Built once, and only when configured. Calling Redis.fromEnv() unconditionally
@@ -24,6 +24,11 @@ const ratelimit =
 
 export async function proxy(request: NextRequest) {
     const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
+    const isSupabaseProxy = request.nextUrl.pathname.startsWith("/api/supabase");
+
+    if (isSupabaseProxy) {
+        return NextResponse.next({ request });
+    }
 
     // Without Supabase credentials we cannot verify anyone, so fail closed:
     // send dashboard traffic to login rather than throwing a 500 from
