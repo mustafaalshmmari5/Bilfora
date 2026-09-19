@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  "https://xdjumeoydjhribkmjkvc.supabase.co";
+const SUPABASE_URL = "https://xdjumeoydjhribkmjkvc.supabase.co";
 
 const PUBLISHABLE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
