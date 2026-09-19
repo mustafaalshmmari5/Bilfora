@@ -5,52 +5,49 @@ import { thmanyahSans, thmanyahSerifText, thmanyahSerifDisplay } from "@/lib/fon
 import { Toaster } from "@/components/ui/sonner";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { MotionProvider } from "@/components/providers/MotionProvider";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
 
-/* Icons are picked up from the app/ file conventions: icon.svg, favicon.ico
-   and apple-icon.png. Declaring `icons` here would override those. */
 export const metadata: Metadata = {
-	title: "نظام حسابات SPC",
-	description: "نظام داخلي لإدارة حسابات SPC والفواتير والمدفوعات.",
+  title: "نظام حسابات SPC",
+  description: "نظام داخلي لمتابعة حسابات الشركات والاستحقاقات والمقبوضات والأرصدة.",
 };
 
 export default function RootLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-	return (
-		<html
-			lang="ar"
-			dir="rtl"
-			className={`scroll-smooth ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`}
-		>
-			<body className="font-sans antialiased">
-				<QueryProvider>
-					<MotionProvider>
-						{children}
-						<Toaster />
-						<Analytics />
-						{process.env.NEXT_PUBLIC_GA_ID && (
-							<>
-								<Script
-									src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-									strategy="afterInteractive"
-								/>
-								<Script id="google-analytics" strategy="afterInteractive">
-									{`
-										window.dataLayer = window.dataLayer || [];
-										function gtag(){dataLayer.push(arguments);}
-										gtag('js', new Date());
-
-										gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
-									`}
-								</Script>
-							</>
-						)}
-					</MotionProvider>
-				</QueryProvider>
-			</body>
-		</html>
-	);
+  return (
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`scroll-smooth ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`}
+    >
+      <body className="font-sans antialiased">
+        <QueryProvider>
+          <MotionProvider>
+            {children}
+            <Toaster />
+            <Analytics />
+            {process.env.NEXT_PUBLIC_GA_ID && (
+              <>
+                <Script
+                  src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+                  strategy="afterInteractive"
+                />
+                <Script id="google-analytics" strategy="afterInteractive">
+                  {`
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+                  `}
+                </Script>
+              </>
+            )}
+          </MotionProvider>
+        </QueryProvider>
+      </body>
+    </html>
+  );
 }
