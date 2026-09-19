@@ -30,7 +30,7 @@ export async function proxy(request: NextRequest) {
     // createServerClient and taking every protected route down with it.
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.error(
-            "Supabase environment variables are missing. Denying access to protected routes."
+            "Supabase URL or publishable key is missing. Denying access to protected routes."
         );
         if (isDashboard) {
             const url = request.nextUrl.clone();
