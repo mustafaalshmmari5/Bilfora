@@ -14,8 +14,17 @@ export default function ThemeToggle({ compact = false, className }: { compact?: 
   const toggleTheme = () => {
     const next = !document.documentElement.classList.contains("dark");
     document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("spc-theme", next ? "dark" : "light");
+    const mode = next ? "dark" : "light";
+    localStorage.setItem("spc-theme", mode);
     setDark(next);
+
+    void supabasePersistent.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      return supabasePersistent
+        .from("profiles")
+        .update({ theme_mode: mode })
+        .eq("id", data.user.id);
+    });
   };
 
   return (
