@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
+import { toast } from "sonner";
 
 type Company = {
   id: string;
@@ -73,7 +74,6 @@ export default function DashboardPage() {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [paymentRow, setPaymentRow] = useState<AccountRow | null>(null);
 
@@ -163,7 +163,6 @@ export default function DashboardPage() {
   const submitEntry = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
-    setMessage("");
 
     if (!form.company_id) {
       setError("اختار الشركة أولاً.");
@@ -200,7 +199,15 @@ export default function DashboardPage() {
     if (rpcError) {
       setError(rpcError.message);
     } else {
-      setMessage("تمت إضافة الحركة وتحديث الرصيد تلقائياً ✓");
+      const companyName = selectedCompany?.name || "الشركة";
+      const currency = selectedCompany?.currency || "IQD";
+      const remaining = Math.max(due - received, 0);
+
+      toast.success("تمت إضافة الحركة بنجاح ✓", {
+        description: companyName + " • المطلوب " + money(due, currency) + " • الباقي " + money(remaining, currency),
+        duration: 4500,
+      });
+
       setForm((prev) => ({
         ...prev,
         posting_date: today(),
@@ -267,7 +274,6 @@ export default function DashboardPage() {
         </div>
 
         {error && <div className="mb-4 rounded-2xl border border-danger-border bg-danger-soft p-3 text-sm text-danger">{error}</div>}
-        {message && <div className="mb-4 rounded-2xl border border-success-border bg-success-soft p-3 text-sm text-success">{message}</div>}
 
         <div className="grid gap-3 lg:grid-cols-12">
           <FieldWrap label="نوع الحركة" className="lg:col-span-2">
@@ -568,8 +574,16 @@ function PaymentModal({
       notes: notes.trim() || null,
     });
 
-    if (insertError) setError(insertError.message);
-    else onSaved();
+    if (insertError) {
+      setError(insertError.message);
+    } else {
+      const newRemaining = Math.max(Number(row.remaining_amount) - value, 0);
+      toast.success("تم تسجيل القبض وتحديث الرصيد ✓", {
+        description: row.company_name + " • استلام " + money(value, row.currency) + " • الباقي " + money(newRemaining, row.currency),
+        duration: 4500,
+      });
+      onSaved();
+    }
 
     setSaving(false);
   };
