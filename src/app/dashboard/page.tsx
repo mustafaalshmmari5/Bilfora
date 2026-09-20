@@ -485,7 +485,7 @@ export default function DashboardPage() {
                       )}
                     </td>
                     <td className="p-4 font-bold">{money(row.due_amount, row.currency)}</td>
-                    <td className="p-4 font-bold text-emerald-600">{money(row.received_amount, row.currency)}</td>
+                    <td className="p-4 font-bold text-brand">{money(row.received_amount, row.currency)}</td>
                     <td className="p-4 font-black">{money(row.remaining_amount, row.currency)}</td>
                     <td className="p-4"><StatusBadge status={row.payment_status} /></td>
                     <td className="p-4">
@@ -497,7 +497,7 @@ export default function DashboardPage() {
                           تسجيل قبض
                         </button>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-brand">
                           <CheckCircle2 size={15} /> مكتمل
                         </span>
                       )}
@@ -610,7 +610,7 @@ function PaymentModal({
           </div>
           <div>
             <p className="text-xs text-muted-foreground">المستلم سابقاً</p>
-            <p className="mt-1 font-bold text-emerald-600">{money(row.received_amount, row.currency)}</p>
+            <p className="mt-1 font-bold text-brand">{money(row.received_amount, row.currency)}</p>
           </div>
         </div>
 
@@ -693,7 +693,7 @@ function Summary({
 }) {
   return (
     <div className="rounded-2xl bg-surface-2 p-3">
-      <div className={"mb-3 inline-flex rounded-xl p-2 " + (danger ? "bg-danger-soft text-danger" : success ? "bg-success-soft text-success" : "bg-brand-soft text-brand")}>
+      <div className={"mb-3 inline-flex rounded-xl p-2 " + (danger ? "bg-danger-soft text-danger" : "bg-brand-soft text-brand")}>
         <Icon size={16} />
       </div>
       <p className="text-[11px] text-muted-foreground">{label}</p>
@@ -704,13 +704,11 @@ function Summary({
 
 function StatusBadge({ status }: { status: AccountRow["payment_status"] }) {
   const styles =
-    status === "paid"
-      ? "bg-success-soft text-success"
-      : status === "overdue"
-        ? "bg-danger-soft text-danger"
-        : status === "partial"
-          ? "bg-warning-soft text-warning"
-          : "bg-surface-inset text-muted-foreground";
+    status === "overdue"
+      ? "bg-danger-soft text-danger"
+      : status === "unpaid"
+        ? "bg-surface-inset text-muted-foreground"
+        : "bg-brand-soft text-brand";
 
   return <span className={"rounded-full px-3 py-1 text-xs font-bold " + styles}>{STATUS_LABELS[status]}</span>;
 }
