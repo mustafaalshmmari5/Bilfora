@@ -187,6 +187,69 @@
   --brand-accent: var(--accent);
 }
 
+
+.dark {
+  color-scheme: dark;
+  --bg: #0b1113;
+  --bg-subtle: #10181b;
+  --surface: #121b1e;
+  --surface-2: #172226;
+  --surface-inset: #1d2a2e;
+  --overlay: rgba(0,0,0,.62);
+  --text: #edf4f4;
+  --text-muted: #a8b6b8;
+  --text-subtle: #89989b;
+  --text-disabled: #667477;
+  --text-on-dark: #ffffff;
+  --border: #263438;
+  --border-strong: #33454a;
+  --ring: #2aa79d;
+  --brand: #2aa79d;
+  --brand-hover: #3ab8ae;
+  --brand-active: #16877f;
+  --brand-soft: #102b29;
+  --brand-soft-2: #173b38;
+  --brand-ink: #d8fffb;
+  --on-brand: #ffffff;
+  --success: #36b7a7;
+  --success-soft: #102d29;
+  --success-border: #1f514b;
+  --warning: #e0ad4f;
+  --warning-soft: #302715;
+  --warning-border: #5c4820;
+  --danger: #e56a6e;
+  --danger-soft: #321719;
+  --danger-border: #5d2a2d;
+  --info: #4da8c5;
+  --info-soft: #132a33;
+  --info-border: #244b59;
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--brand);
+  --primary-foreground: var(--on-brand);
+  --secondary: var(--surface-inset);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface-inset);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--surface-inset);
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --destructive-foreground: #ffffff;
+  --input: var(--border-strong);
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--on-brand);
+  --sidebar-accent: var(--brand-soft);
+  --sidebar-accent-foreground: var(--brand);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
 /* ============================================================
    Tailwind v4 utility mapping (color, flippable via inline)
    ============================================================ */
