@@ -23,6 +23,13 @@ export default function RootLayout({
       dir="rtl"
       className={`scroll-smooth ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{var t=localStorage.getItem('spc-theme');document.documentElement.classList.toggle('dark',t==='dark')}catch(e){}",
+          }}
+        />
+      </head>
       <body className="font-sans antialiased">
         <QueryProvider>
           <MotionProvider>
