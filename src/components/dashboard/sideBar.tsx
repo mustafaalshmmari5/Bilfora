@@ -37,6 +37,49 @@ export default function Sidebar() {
     if (!isCollapsed) setHoveredItem(null);
   }, [isCollapsed]);
 
+  useEffect(() => {
+    const loadAppearance = async () => {
+      const { data: auth } = await supabasePersistent.auth.getUser();
+      if (!auth.user) return;
+
+      const { data } = await supabasePersistent
+        .from("profiles")
+        .select("accent_color, theme_mode")
+        .eq("id", auth.user.id)
+        .single();
+
+      if (!data) return;
+
+      const mode = data.theme_mode === "dark" ? "dark" : "light";
+      document.documentElement.classList.toggle("dark", mode === "dark");
+      localStorage.setItem("spc-theme", mode);
+
+      const color = data.accent_color || "#0f766e";
+      const num = parseInt(color.slice(1), 16);
+      const shade = (amount: number) => {
+        const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+        const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
+        const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
+        return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
+      };
+
+      const root = document.documentElement;
+      root.style.setProperty("--brand", color);
+      root.style.setProperty("--primary", color);
+      root.style.setProperty("--ring", color);
+      root.style.setProperty("--sidebar-primary", color);
+      root.style.setProperty("--brand-hover", shade(-18));
+      root.style.setProperty("--brand-active", shade(-32));
+      root.style.setProperty("--brand-soft", color + "18");
+      root.style.setProperty("--brand-soft-2", color + "2b");
+      root.style.setProperty("--sidebar-accent", color + "18");
+      root.style.setProperty("--sidebar-accent-foreground", color);
+      localStorage.setItem("spc-accent", color);
+    };
+
+    loadAppearance();
+  }, []);
+
   const confirmLogout = async () => {
     setIsLoggingOut(true);
     try { await Promise.all([supabasePersistent.auth.signOut(), supabaseSession.auth.signOut()]); }
