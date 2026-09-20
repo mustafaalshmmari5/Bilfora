@@ -714,3 +714,42 @@
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
   }
 }
+
+
+/* Apply the user's chosen accent color to native controls and general UI accents. */
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"],
+progress {
+  accent-color: var(--brand);
+}
+
+select,
+input,
+textarea,
+button {
+  caret-color: var(--brand);
+}
+
+select:focus,
+input:focus,
+textarea:focus,
+button:focus-visible {
+  outline-color: var(--brand);
+}
+
+option:checked {
+  background: var(--brand);
+  color: white;
+}
+
+[data-theme-accent],
+.theme-accent {
+  color: var(--brand);
+}
+
+[data-theme-accent-bg],
+.theme-accent-bg {
+  background-color: var(--brand-soft);
+  color: var(--brand);
+}
