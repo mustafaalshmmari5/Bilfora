@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
+import { applyAccentColor } from "@/lib/appearance";
 
 type NotificationRow = {
   id: string;
@@ -44,29 +45,6 @@ const COLORS = [
   "#0891b2",
   "#475569",
 ];
-
-function shade(hex: string, amount: number) {
-  const num = parseInt(hex.slice(1), 16);
-  const r = Math.max(0, Math.min(255, (num >> 16) + amount));
-  const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
-  const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
-  return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
-}
-
-function applyAccent(color: string) {
-  const root = document.documentElement;
-  root.style.setProperty("--brand", color);
-  root.style.setProperty("--primary", color);
-  root.style.setProperty("--ring", color);
-  root.style.setProperty("--sidebar-primary", color);
-  root.style.setProperty("--brand-hover", shade(color, -18));
-  root.style.setProperty("--brand-active", shade(color, -32));
-  root.style.setProperty("--brand-soft", color + "18");
-  root.style.setProperty("--brand-soft-2", color + "2b");
-  root.style.setProperty("--sidebar-accent", color + "18");
-  root.style.setProperty("--sidebar-accent-foreground", color);
-  localStorage.setItem("spc-accent", color);
-}
 
 export default function NotificationBell() {
   const [items, setItems] = useState<NotificationRow[]>([]);
@@ -152,7 +130,7 @@ export default function NotificationBell() {
 
   const chooseColor = (color: string) => {
     setAccent(color);
-    applyAccent(color);
+    applyAccentColor(color);
     void saveAppearance(color, dark);
   };
 
