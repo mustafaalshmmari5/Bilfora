@@ -112,7 +112,8 @@ export default function Sidebar() {
         <div className="my-4 border-t border-border"/>
         <SidebarNavItem href="/dashboard/settings" label="الإعدادات" icon={Settings} active={pathname.startsWith("/dashboard/settings")} isCollapsed={isCollapsed} onClick={()=>setIsMobileMenuOpen(false)} onMouseEnter={e=>handleHover(e,"الإعدادات")} onMouseLeave={()=>setHoveredItem(null)}/>
       </nav>
-      <div className="border-t border-border bg-surface-2 p-4 space-y-2">\n        <ThemeToggle compact={isCollapsed} className="w-full" />
+      <div className="border-t border-border bg-surface-2 p-4 space-y-2">
+        <ThemeToggle compact={isCollapsed} className="w-full" />
         <button onClick={()=>setIsLogoutOpen(true)} onMouseEnter={e=>handleHover(e,"تسجيل الخروج")} onMouseLeave={()=>setHoveredItem(null)} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-danger hover:bg-danger-soft"><LogOut size={isCollapsed?22:18}/>{!isCollapsed&&<span>تسجيل الخروج</span>}</button>
       </div>
     </m.aside>
