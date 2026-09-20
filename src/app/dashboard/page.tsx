@@ -207,6 +207,7 @@ export default function DashboardPage() {
         description: companyName + " • المطلوب " + money(due, currency) + " • الباقي " + money(remaining, currency),
         duration: 4500,
       });
+      window.dispatchEvent(new Event("spc-movement-created"));
 
       setForm((prev) => ({
         ...prev,
@@ -582,6 +583,7 @@ function PaymentModal({
         description: row.company_name + " • استلام " + money(value, row.currency) + " • الباقي " + money(newRemaining, row.currency),
         duration: 4500,
       });
+      window.dispatchEvent(new Event("spc-movement-created"));
       onSaved();
     }
 
