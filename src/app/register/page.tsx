@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { getAuthErrorMessage } from "@/utils/error-handling";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen bg-surface-2 flex items-center justify-center p-4">
+    <main className="relative min-h-screen bg-surface-2 flex items-center justify-center p-4">\n      <ThemeToggle compact className="fixed left-4 top-4 z-20 shadow-md" />
       <div className="w-full max-w-md">
         <div className="mb-6 flex justify-center">
           <img src="/spc-logo.svg" alt="SPC - Solution Portal Company" className="h-auto w-[190px] object-contain" />
