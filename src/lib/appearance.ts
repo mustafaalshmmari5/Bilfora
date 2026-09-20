@@ -19,6 +19,7 @@ export function applyAccentColor(color: string) {
   root.style.setProperty("--ring", color);
   root.style.setProperty("--brand-accent", color);
   root.style.setProperty("--info", color);
+  root.style.setProperty("--success", color);
 
   root.style.setProperty("--brand-hover", shadeColor(color, -18));
   root.style.setProperty("--brand-active", shadeColor(color, -32));
@@ -26,6 +27,8 @@ export function applyAccentColor(color: string) {
   root.style.setProperty("--brand-soft-2", softStrong);
   root.style.setProperty("--info-soft", soft);
   root.style.setProperty("--info-border", softStrong);
+  root.style.setProperty("--success-soft", soft);
+  root.style.setProperty("--success-border", softStrong);
 
   root.style.setProperty("--accent", verySoft);
   root.style.setProperty("--accent-foreground", color);
