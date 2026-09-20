@@ -240,7 +240,7 @@ export default function NotificationBell() {
                             (item.kind === "due_soon"
                               ? "bg-warning-soft text-warning"
                               : item.kind === "payment_received"
-                                ? "bg-success-soft text-success"
+                                ? "bg-brand-soft text-brand"
                                 : "bg-brand-soft text-brand")
                           }
                         >
