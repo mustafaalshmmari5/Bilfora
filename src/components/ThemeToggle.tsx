@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabasePersistent } from "@/lib/supabase-clients";
 
 export default function ThemeToggle({ compact = false, className }: { compact?: boolean; className?: string }) {
   const [dark, setDark] = useState(false);
