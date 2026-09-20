@@ -688,3 +688,10 @@
 .print-header {
   display: none;
 }
+
+
+/* SPC logo treatment in dark mode: white artwork with transparent-looking background */
+.dark img[src="/spc-logo.svg"] {
+  filter: invert(1) grayscale(1) brightness(2);
+  mix-blend-mode: screen;
+}
