@@ -25,6 +25,7 @@ type Company = {
   sap_code: string;
   currency: "IQD" | "USD";
   balance: number | string;
+  party_type: "company" | "person";
 };
 
 type AccountRow = {
@@ -76,6 +77,7 @@ export default function DashboardPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("all");
+  const [personFilter, setPersonFilter] = useState("all");
   const [error, setError] = useState("");
   const [paymentRow, setPaymentRow] = useState<AccountRow | null>(null);
 
@@ -96,7 +98,7 @@ export default function DashboardPage() {
     const [companiesResult, rowsResult] = await Promise.all([
       supabasePersistent
         .from("spc_company_balances")
-        .select("id,name,sap_code,currency,balance")
+        .select("id,name,sap_code,currency,balance,party_type")
         .order("name"),
       supabasePersistent
         .from("spc_account_rows")
@@ -157,11 +159,12 @@ export default function DashboardPage() {
 
       const matchesType = typeFilter === "all" || row.entry_type === typeFilter;
       const matchesStatus = statusFilter === "all" || row.payment_status === statusFilter;
-      const matchesCompany = companyFilter === "all" || row.company_id === companyFilter;
+      const entityFilter = companyFilter !== "all" ? companyFilter : personFilter;
+      const matchesEntity = entityFilter === "all" || row.company_id === entityFilter;
 
-      return matchesText && matchesType && matchesStatus && matchesCompany;
+      return matchesText && matchesType && matchesStatus && matchesEntity;
     });
-  }, [rows, query, typeFilter, statusFilter, companyFilter]);
+  }, [rows, query, typeFilter, statusFilter, companyFilter, personFilter]);
 
   const submitEntry = async (e: FormEvent) => {
     e.preventDefault();
@@ -416,7 +419,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                 <input
@@ -443,13 +446,40 @@ export default function DashboardPage() {
                 <option value="overdue">متأخر</option>
               </select>
 
-              <select value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)} className="input">
+              <select
+                value={companyFilter}
+                onChange={(e) => {
+                  setCompanyFilter(e.target.value);
+                  if (e.target.value !== "all") setPersonFilter("all");
+                }}
+                className="input"
+              >
                 <option value="all">كل الشركات</option>
-                {companies.map((company) => (
-                  <option key={company.id} value={company.id}>
-                    {company.name} — {company.sap_code}
-                  </option>
-                ))}
+                {companies
+                  .filter((company) => company.party_type === "company")
+                  .map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name} — {company.sap_code}
+                    </option>
+                  ))}
+              </select>
+
+              <select
+                value={personFilter}
+                onChange={(e) => {
+                  setPersonFilter(e.target.value);
+                  if (e.target.value !== "all") setCompanyFilter("all");
+                }}
+                className="input"
+              >
+                <option value="all">كل الأشخاص</option>
+                {companies
+                  .filter((company) => company.party_type === "person")
+                  .map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name} — {company.sap_code}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>

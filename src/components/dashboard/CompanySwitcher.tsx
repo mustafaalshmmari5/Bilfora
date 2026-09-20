@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Building2, Search, X } from "lucide-react";
+import { Building2, Search, UserRound, X } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 
 type CompanyOption = {
   id: string;
   name: string;
   sap_code: string;
+  party_type: "company" | "person";
 };
 
 export default function CompanySwitcher({
@@ -25,7 +26,7 @@ export default function CompanySwitcher({
     const load = async () => {
       const { data } = await supabasePersistent
         .from("spc_company_balances")
-        .select("id,name,sap_code")
+        .select("id,name,sap_code,party_type")
         .order("name");
 
       setCompanies((data ?? []) as CompanyOption[]);
@@ -68,7 +69,7 @@ export default function CompanySwitcher({
           className="inline-flex items-center gap-2 rounded-2xl border border-brand/30 bg-brand-soft px-4 py-2.5 text-sm font-bold text-brand shadow-sm transition hover:border-brand hover:bg-brand-soft-2"
         >
           <Search size={17} />
-          بحث عن شركة
+          بحث عن جهة
         </button>
 
         {current && (
@@ -91,7 +92,7 @@ export default function CompanySwitcher({
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="اسم الشركة أو رقم SAP..."
+                placeholder="اسم الشركة/الشخص أو رقم SAP..."
                 className="input pr-9 pl-10"
               />
               {query && (
@@ -110,26 +111,43 @@ export default function CompanySwitcher({
           <div className="max-h-[360px] overflow-y-auto p-2">
             {filtered.length === 0 ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
-                ماكو شركة بهذا الاسم أو رقم SAP.
+                ماكو جهة بهذا الاسم أو رقم SAP.
               </div>
             ) : (
-              filtered.map((company) => (
-                <Link
-                  key={company.id}
-                  href={"/dashboard/companies/" + company.id}
-                  onClick={() => setOpen(false)}
-                  className={
-                    "flex items-center justify-between gap-3 rounded-2xl px-3 py-3 transition hover:bg-brand-soft " +
-                    (company.id === currentCompanyId ? "bg-brand-soft text-brand" : "")
-                  }
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-black">{company.name}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{company.sap_code}</p>
-                  </div>
-                  <Building2 size={17} className="shrink-0 text-brand" />
-                </Link>
-              ))
+              <>
+                {(["company", "person"] as const).map((group) => {
+                  const groupItems = filtered.filter((item) => item.party_type === group);
+                  if (groupItems.length === 0) return null;
+
+                  return (
+                    <div key={group} className="mb-2 last:mb-0">
+                      <div className="px-3 py-2 text-[11px] font-black text-muted-foreground">
+                        {group === "company" ? "الشركات" : "الأشخاص"}
+                      </div>
+                      {groupItems.map((company) => {
+                        const Icon = company.party_type === "person" ? UserRound : Building2;
+                        return (
+                          <Link
+                            key={company.id}
+                            href={"/dashboard/companies/" + company.id}
+                            onClick={() => setOpen(false)}
+                            className={
+                              "flex items-center justify-between gap-3 rounded-2xl px-3 py-3 transition hover:bg-brand-soft " +
+                              (company.id === currentCompanyId ? "bg-brand-soft text-brand" : "")
+                            }
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-black">{company.name}</p>
+                              <p className="mt-1 text-xs text-muted-foreground">{company.sap_code}</p>
+                            </div>
+                            <Icon size={17} className="shrink-0 text-brand" />
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </>
             )}
           </div>
         </div>
