@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Building2, Plus, BanknoteArrowDown, BellRing, X } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
+import CompanySwitcher from "@/components/dashboard/CompanySwitcher";
 
 type Company = {
   id:string; name:string; sap_code:string; main_service:string|null; currency:"IQD"|"USD";
@@ -41,7 +42,7 @@ export default function CompanyAccountPage() {
 
   return (
     <div className="space-y-6 pb-10">
-      <Link href="/dashboard/companies" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand"><ArrowRight size={16}/> رجوع للشركات</Link>
+      <div className="flex flex-wrap items-center justify-between gap-3"><Link href="/dashboard/companies" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand"><ArrowRight size={16}/> رجوع للشركات</Link><CompanySwitcher currentCompanyId={id} /></div>
 
       <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">

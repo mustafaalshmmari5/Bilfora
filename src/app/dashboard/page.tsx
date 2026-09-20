@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
+import CompanySwitcher from "@/components/dashboard/CompanySwitcher";
 import { toast } from "sonner";
 
 type Company = {
@@ -234,13 +235,16 @@ export default function DashboardPage() {
             سجّل المطلوب والمستلم بسرعة، والباقي والحالة ينحسبون تلقائياً.
           </p>
         </div>
-        <Link
-          href="/dashboard/companies?new=1"
-          className="mt-14 inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm font-bold hover:bg-surface-2 lg:mt-14"
-        >
-          <Building2 size={17} />
-          شركة جديدة
-        </Link>
+        <div className="mt-14 flex flex-wrap items-center gap-2 lg:mt-14">
+          <CompanySwitcher />
+          <Link
+            href="/dashboard/companies?new=1"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm font-bold hover:bg-surface-2"
+          >
+            <Building2 size={17} />
+            شركة جديدة
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
