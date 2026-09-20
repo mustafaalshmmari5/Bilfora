@@ -143,11 +143,11 @@ export default function NotificationBell() {
 
   return (
     <div className="fixed left-4 top-4 z-[70] md:left-8 md:top-6">
-      <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface/95 p-1.5 shadow-lg backdrop-blur">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => setPanel(panel === "notifications" ? null : "notifications")}
-          className="relative flex h-10 w-10 items-center justify-center rounded-xl transition hover:bg-surface-2"
+          className={"relative flex h-11 w-11 items-center justify-center rounded-2xl border border-brand bg-brand text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-brand-hover " + (unread > 0 ? "ring-4 ring-brand-soft" : "")}
           aria-label="الإشعارات"
           title="الإشعارات"
         >
@@ -162,11 +162,11 @@ export default function NotificationBell() {
         <button
           type="button"
           onClick={() => setPanel(panel === "appearance" ? null : "appearance")}
-          className="flex h-10 w-10 items-center justify-center rounded-xl transition hover:bg-surface-2"
+          className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-border text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl" style={{ background: "conic-gradient(from 210deg, #7c3aed, #2563eb, #0891b2, #16a34a, #eab308, #ea580c, #db2777, #7c3aed)" }}
           aria-label="المظهر والألوان"
           title="المظهر والألوان"
         >
-          <Palette size={19} />
+          <Palette size={20} className="drop-shadow-sm" />
         </button>
       </div>
 
