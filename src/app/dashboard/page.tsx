@@ -236,7 +236,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/dashboard/companies?new=1"
-          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm font-bold hover:bg-surface-2"
+          className="mt-14 inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm font-bold hover:bg-surface-2 lg:mt-14"
         >
           <Building2 size={17} />
           شركة جديدة
