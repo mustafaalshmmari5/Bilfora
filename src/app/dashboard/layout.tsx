@@ -229,10 +229,5 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 export default function DashboardLayoutWrapper({
 	children,
 }: DashboardLayoutWrapperProps) {
-	return (
-		<>
-			<AuthWrapper>{children}</AuthWrapper>
-			<FeedbackWidget />
-		</>
-	);
+	return <AuthWrapper>{children}</AuthWrapper>;
 }
