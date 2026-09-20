@@ -75,6 +75,7 @@ export default function DashboardPage() {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [companyFilter, setCompanyFilter] = useState("all");
   const [error, setError] = useState("");
   const [paymentRow, setPaymentRow] = useState<AccountRow | null>(null);
 
@@ -156,10 +157,11 @@ export default function DashboardPage() {
 
       const matchesType = typeFilter === "all" || row.entry_type === typeFilter;
       const matchesStatus = statusFilter === "all" || row.payment_status === statusFilter;
+      const matchesCompany = companyFilter === "all" || row.company_id === companyFilter;
 
-      return matchesText && matchesType && matchesStatus;
+      return matchesText && matchesType && matchesStatus && matchesCompany;
     });
-  }, [rows, query, typeFilter, statusFilter]);
+  }, [rows, query, typeFilter, statusFilter, companyFilter]);
 
   const submitEntry = async (e: FormEvent) => {
     e.preventDefault();
@@ -414,7 +416,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                 <input
@@ -439,6 +441,15 @@ export default function DashboardPage() {
                 <option value="partial">جزئي</option>
                 <option value="unpaid">غير مسدد</option>
                 <option value="overdue">متأخر</option>
+              </select>
+
+              <select value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)} className="input">
+                <option value="all">كل الشركات</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name} — {company.sap_code}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
