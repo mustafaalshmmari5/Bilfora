@@ -9,6 +9,7 @@ import SidebarProvider from "@/components/dashboard/SidebarProvider";
 import LoadingState from "@/components/LoadingState";
 import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/dashboard/NotificationBell";
 
 interface DashboardLayoutWrapperProps {
 	children: ReactNode;
@@ -218,6 +219,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 		<SidebarProvider>
 			<div className="min-h-screen flex flex-col md:flex-row bg-background">
 				<Sidebar />
+				<NotificationBell />
 				<DashboardContent>{children}</DashboardContent>
 			</div>
 		</SidebarProvider>
