@@ -4,7 +4,6 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
-import { Logo } from "@/components/brand/Logo";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { getAuthErrorMessage } from "@/utils/error-handling";
 
@@ -56,7 +55,7 @@ export default function RegisterPage() {
     <main className="min-h-screen bg-surface-2 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-6 flex justify-center">
-          <Logo size={24} />
+          <img src="/spc-logo.svg" alt="SPC - Solution Portal Company" className="h-auto w-[190px] object-contain" />
         </div>
 
         <div className="rounded-3xl border border-border bg-surface p-7 shadow-xl">
