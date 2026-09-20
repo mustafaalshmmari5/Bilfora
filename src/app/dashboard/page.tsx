@@ -229,7 +229,7 @@ export default function DashboardPage() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-black">حسابات الشركات</h1>
+          <h1 className="text-3xl font-black">مستحقات الشركات التابعة إلى SPC</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             سجّل المطلوب والمستلم بسرعة، والباقي والحالة ينحسبون تلقائياً.
           </p>
