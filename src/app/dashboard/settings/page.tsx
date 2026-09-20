@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Check, Moon, Palette, Save, Sun, User } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
+import { applyAccentColor } from "@/lib/appearance";
 
 const PRESETS = [
   "#0f766e",
@@ -14,29 +15,6 @@ const PRESETS = [
   "#0891b2",
   "#475569",
 ];
-
-function shade(hex: string, amount: number) {
-  const num = parseInt(hex.slice(1), 16);
-  const r = Math.max(0, Math.min(255, (num >> 16) + amount));
-  const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
-  const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
-  return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
-}
-
-function applyAccent(color: string) {
-  const root = document.documentElement;
-  root.style.setProperty("--brand", color);
-  root.style.setProperty("--primary", color);
-  root.style.setProperty("--ring", color);
-  root.style.setProperty("--sidebar-primary", color);
-  root.style.setProperty("--brand-hover", shade(color, -18));
-  root.style.setProperty("--brand-active", shade(color, -32));
-  root.style.setProperty("--brand-soft", color + "18");
-  root.style.setProperty("--brand-soft-2", color + "2b");
-  root.style.setProperty("--sidebar-accent", color + "18");
-  root.style.setProperty("--sidebar-accent-foreground", color);
-  localStorage.setItem("spc-accent", color);
-}
 
 function applyTheme(mode: "light" | "dark") {
   document.documentElement.classList.toggle("dark", mode === "dark");
@@ -79,7 +57,7 @@ export default function SettingsPage() {
       setTheme(nextTheme);
       setAccent(nextAccent);
       applyTheme(nextTheme);
-      applyAccent(nextAccent);
+      applyAccentColor(nextAccent);
       setLoading(false);
     };
 
@@ -94,7 +72,7 @@ export default function SettingsPage() {
 
   const chooseAccent = (color: string) => {
     setAccent(color);
-    applyAccent(color);
+    applyAccentColor(color);
     setSaved(false);
   };
 
@@ -207,7 +185,7 @@ export default function SettingsPage() {
           <input
             value={accent}
             onChange={(e) => /^#[0-9A-Fa-f]{0,6}$/.test(e.target.value) && setAccent(e.target.value)}
-            onBlur={() => /^#[0-9A-Fa-f]{6}$/.test(accent) && applyAccent(accent)}
+            onBlur={() => /^#[0-9A-Fa-f]{6}$/.test(accent) && applyAccentColor(accent)}
             className="w-32 rounded-xl border border-border bg-surface-2 px-3 py-2 font-mono text-sm"
             dir="ltr"
           />
