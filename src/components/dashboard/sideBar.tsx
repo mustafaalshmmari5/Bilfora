@@ -60,7 +60,7 @@ export default function Sidebar() {
     <m.aside animate={{width:isCollapsed?80:264}} className={cn("fixed top-0 right-0 z-40 flex h-screen flex-col border-l border-border bg-surface/95 shadow-2xl backdrop-blur-xl transition-transform",isMobileMenuOpen?"translate-x-0":"translate-x-full md:translate-x-0")}>
       <div className={cn("flex items-center border-b border-border p-6",isCollapsed?"justify-center":"justify-between")}>
         {isCollapsed ? <button onClick={()=>setIsCollapsed(false)} className="flex flex-col items-center gap-1"><Logo variant="symbol" size={26}/><ChevronLeft size={14}/></button> :
-          <><Link href="/dashboard"><Logo size={22}/></Link><button onClick={()=>setIsCollapsed(true)} className="hidden rounded-xl p-2 hover:bg-surface-2 md:block"><ChevronRight size={20}/></button></>}
+          <><Link href="/dashboard" className="flex items-center"><img src="/spc-logo.svg" alt="SPC - Solution Portal Company" className="h-auto w-[150px] object-contain" /></Link><button onClick={()=>setIsCollapsed(true)} className="hidden rounded-xl p-2 hover:bg-surface-2 md:block"><ChevronRight size={20}/></button></>}
       </div>
       <nav className="flex-1 space-y-1.5 overflow-y-auto px-4 py-6">
         {!isCollapsed&&<p className="px-4 pb-2 text-xs font-semibold text-muted-foreground">نظام حسابات SPC</p>}
