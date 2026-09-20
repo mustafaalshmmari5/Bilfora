@@ -225,7 +225,6 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 }
 
 // 🌟 Main layout wrapper
-import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
 
 export default function DashboardLayoutWrapper({
 	children,
