@@ -58,8 +58,8 @@ export default function CompanySwitcher({
   }, [companies, query]);
 
   return (
-    <div ref={boxRef} className="relative" dir="rtl">
-      <div className="flex items-center gap-2">
+    <div ref={boxRef} className="relative max-w-full" dir="rtl">
+      <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
         <button
           type="button"
           onClick={() => {
@@ -81,7 +81,7 @@ export default function CompanySwitcher({
       </div>
 
       {open && (
-        <div className="absolute left-0 top-full z-[80] mt-2 w-[min(92vw,360px)] overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl">
+        <div className="absolute right-0 top-full z-[80] mt-2 w-[min(92vw,360px)] overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl">
           <div className="border-b border-border p-3">
             <div className="relative">
               <Search
