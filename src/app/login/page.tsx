@@ -3,14 +3,14 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, UserRound } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { getAuthErrorMessage } from "@/utils/error-handling";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -21,8 +21,14 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
+    if (username.trim().toLowerCase() !== "mustafa321") {
+      setError("اسم المستخدم غير صحيح.");
+      setLoading(false);
+      return;
+    }
+
     const { error: signInError } = await supabasePersistent.auth.signInWithPassword({
-      email: email.trim(),
+      email: "mustafaalshmmari5@gmail.com",
       password,
     });
 
@@ -59,15 +65,16 @@ export default function LoginPage() {
 
           <form onSubmit={submit} className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium">البريد الإلكتروني</label>
+              <label className="mb-2 block text-sm font-medium">اسم المستخدم</label>
               <div className="relative">
-                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={17} />
+                <UserRound className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={17} />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="mustafa321"
                   className="w-full rounded-2xl border border-border bg-surface-2 py-3.5 pr-11 pl-4 outline-none focus:border-brand"
                 />
               </div>
