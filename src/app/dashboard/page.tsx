@@ -25,6 +25,8 @@ type Company = {
   sap_code: string;
   currency: "IQD" | "USD";
   balance: number | string;
+  total_due: number | string;
+  total_paid: number | string;
   party_type: "company" | "person";
 };
 
@@ -98,7 +100,7 @@ export default function DashboardPage() {
     const [companiesResult, rowsResult] = await Promise.all([
       supabasePersistent
         .from("spc_company_balances")
-        .select("id,name,sap_code,currency,balance,party_type")
+        .select("id,name,sap_code,currency,balance,total_due,total_paid,party_type")
         .order("name"),
       supabasePersistent
         .from("spc_account_rows")
@@ -128,18 +130,30 @@ export default function DashboardPage() {
       USD: { due: 0, received: 0, remaining: 0, overdue: 0 },
     };
 
+    const companyIds = new Set(
+      companies
+        .filter((company) => company.party_type === "company")
+        .map((company) => company.id)
+    );
+
+    companies
+      .filter((company) => company.party_type === "company")
+      .forEach((company) => {
+        const bucket = initial[company.currency];
+        bucket.due += Number(company.total_due || 0);
+        bucket.received += Number(company.total_paid || 0);
+        bucket.remaining += Number(company.balance || 0);
+      });
+
     rows.forEach((row) => {
-      const bucket = initial[row.currency];
-      bucket.due += Number(row.due_amount || 0);
-      bucket.received += Number(row.received_amount || 0);
-      bucket.remaining += Number(row.remaining_amount || 0);
+      if (!companyIds.has(row.company_id)) return;
       if (row.payment_status === "overdue") {
-        bucket.overdue += Number(row.remaining_amount || 0);
+        initial[row.currency].overdue += Number(row.remaining_amount || 0);
       }
     });
 
     return initial;
-  }, [rows]);
+  }, [companies, rows]);
 
   const filteredRows = useMemo(() => {
     const text = query.trim().toLowerCase();
@@ -482,7 +496,6 @@ export default function DashboardPage() {
           <div className="p-12 text-center">
             <ReceiptText className="mx-auto mb-3 text-muted-foreground" size={40} />
             <p className="font-bold">ماكو حركات حالياً</p>
-            <p className="mt-1 text-sm text-muted-foreground">أضف أول حركة من النموذج اللي فوق.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
