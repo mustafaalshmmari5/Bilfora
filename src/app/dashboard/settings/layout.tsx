@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
 	User,
-	Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Heading } from "@/components/ui";
@@ -12,7 +11,6 @@ import { m } from "framer-motion";
 
 const SETTINGS_TABS = [
 	{ href: "/dashboard/settings", label: "عام", icon: User, exact: true },
-	{ href: "/dashboard/settings/notifications", label: "التنبيهات", icon: Bell, disabled: true },
 ] as const;
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
