@@ -3,9 +3,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Building2, Plus, Search, X, ArrowLeft } from "lucide-react";
+import { Building2, Plus, Search, X, ArrowLeft, Trash2 } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { useLanguage } from "@/lib/language";
+import { toast } from "sonner";
 
 type Company = {
   id: string; name: string; sap_code: string; main_service: string | null; currency: "IQD"|"USD";
@@ -56,6 +57,26 @@ export default function CompaniesPage() {
 
   const filtered = companies.filter(c => (c.name+" "+c.sap_code+" "+(c.main_service??"")).toLowerCase().includes(query.toLowerCase()));
 
+  const deleteCompany = async (company: Company) => {
+    if (!window.confirm(tr("حذف هذه الشركة نهائياً؟","Delete this company permanently?"))) return;
+
+    const { error: deleteError } = await supabasePersistent.rpc("spc_delete_company_safe", {
+      p_company_id: company.id,
+    });
+
+    if (deleteError) {
+      toast.error(
+        deleteError.message.includes("HAS_MOVEMENTS")
+          ? tr("هذه الشركة عليها حركات. احذف الحركات أولاً.","This company has movements. Delete its movements first.")
+          : deleteError.message
+      );
+      return;
+    }
+
+    toast.success(tr("تم حذف الشركة.","Company deleted."));
+    await load();
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -75,24 +96,35 @@ export default function CompaniesPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {filtered.map(c => (
-          <Link key={c.id} href={"/dashboard/companies/"+c.id} className="rounded-3xl border border-border bg-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex gap-3">
-                <div className="rounded-2xl bg-brand/10 p-3 text-brand"><Building2 size={21}/></div>
-                <div>
-                  <h2 className="text-lg font-black">{c.name}</h2>
-                  <p className="text-xs text-muted-foreground">SAP: {c.sap_code}</p>
-                  <p className="mt-2 text-sm">{c.main_service || tr("بدون خدمة محددة","No service specified")}</p>
+          <div key={c.id} className="relative rounded-3xl border border-border bg-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <Link href={"/dashboard/companies/"+c.id} className="block">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex gap-3">
+                  <div className="rounded-2xl bg-brand/10 p-3 text-brand"><Building2 size={21}/></div>
+                  <div>
+                    <h2 className="text-lg font-black">{c.name}</h2>
+                    <p className="text-xs text-muted-foreground">SAP: {c.sap_code}</p>
+                    <p className="mt-2 text-sm">{c.main_service || tr("بدون خدمة محددة","No service specified")}</p>
+                  </div>
                 </div>
+                <ArrowLeft className="text-muted-foreground" size={18}/>
               </div>
-              <ArrowLeft className="text-muted-foreground" size={18}/>
-            </div>
-            <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl bg-surface-2 p-4 text-center">
-              <Mini label={tr("المطلوب","Due")} value={Number(c.total_due||0)} currency={c.currency}/>
-              <Mini label={tr("المقبوض","Received")} value={Number(c.total_paid||0)} currency={c.currency}/>
-              <Mini label={tr("الباقي","Remaining")} value={Number(c.balance||0)} currency={c.currency} bold/>
-            </div>
-          </Link>
+              <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl bg-surface-2 p-4 text-center">
+                <Mini label={tr("المطلوب","Due")} value={Number(c.total_due||0)} currency={c.currency}/>
+                <Mini label={tr("المقبوض","Received")} value={Number(c.total_paid||0)} currency={c.currency}/>
+                <Mini label={tr("الباقي","Remaining")} value={Number(c.balance||0)} currency={c.currency} bold/>
+              </div>
+            </Link>
+            <button
+              type="button"
+              onClick={() => void deleteCompany(c)}
+              className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-100"
+              title={tr("حذف الشركة","Delete Company")}
+            >
+              <Trash2 size={14}/>
+              {tr("حذف","Delete")}
+            </button>
+          </div>
         ))}
       </div>
 
