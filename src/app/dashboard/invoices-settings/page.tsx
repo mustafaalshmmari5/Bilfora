@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, FileText, Hash, Save, WalletCards } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
+import { useLanguage } from "@/lib/language";
 
 type InvoiceSettings = {
   user_id: string;
@@ -23,6 +24,7 @@ const defaults = {
 };
 
 export default function InvoiceSettingsPage() {
+  const { tr } = useLanguage();
   const [form, setForm] = useState(defaults);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,7 +38,7 @@ export default function InvoiceSettingsPage() {
 
       const { data: auth, error: authError } = await supabasePersistent.auth.getUser();
       if (authError || !auth.user) {
-        setError("انتهت الجلسة. سجل دخول مرة ثانية.");
+        setError(tr("انتهت الجلسة. سجل دخول مرة ثانية.","Session expired. Please sign in again."));
         setLoading(false);
         return;
       }
@@ -74,7 +76,7 @@ export default function InvoiceSettingsPage() {
 
     const { data: auth, error: authError } = await supabasePersistent.auth.getUser();
     if (authError || !auth.user) {
-      setError("انتهت الجلسة. سجل دخول مرة ثانية.");
+      setError(tr("انتهت الجلسة. سجل دخول مرة ثانية.","Session expired. Please sign in again."));
       setSaving(false);
       return;
     }
@@ -101,15 +103,15 @@ export default function InvoiceSettingsPage() {
   };
 
   if (loading) {
-    return <div className="p-10 text-center text-muted-foreground">جاري تحميل إعدادات الفواتير...</div>;
+    return <div className="p-10 text-center text-muted-foreground">{tr("جاري تحميل إعدادات الفواتير...","Loading invoice settings...")}</div>;
   }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-black">إعدادات الفواتير</h1>
-          <p className="mt-2 text-sm text-muted-foreground">إعدادات خاصة بفواتير SPC.</p>
+          <h1 className="text-3xl font-black">{tr("إعدادات الفواتير","Invoice Settings")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{tr("إعدادات خاصة بفواتير SPC.","SPC invoice settings.")}</p>
         </div>
         <Link href="/dashboard/settings" className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm font-bold hover:bg-surface-2">
           <ArrowRight size={17} />
@@ -118,44 +120,44 @@ export default function InvoiceSettingsPage() {
       </div>
 
       {error && <div className="rounded-2xl border border-danger-border bg-danger-soft p-4 text-sm text-danger">{error}</div>}
-      {saved && <div className="rounded-2xl border border-success-border bg-success-soft p-4 text-sm text-success">تم حفظ إعدادات الفواتير ✓</div>}
+      {saved && <div className="rounded-2xl border border-success-border bg-success-soft p-4 text-sm text-success">{tr("تم حفظ إعدادات الفواتير ✓","Invoice settings saved ✓")}</div>}
 
       <form onSubmit={save} className="space-y-6">
         <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-2">
             <FileText className="text-brand" size={20} />
-            <h2 className="text-lg font-black">بيانات الفاتورة</h2>
+            <h2 className="text-lg font-black">{tr("بيانات الفاتورة","Invoice Details")}</h2>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="اسم الشركة" value={form.company_name} onChange={(value) => setForm({...form,company_name:value})} />
-            <Field label="بادئة رقم الفاتورة" value={form.invoice_prefix} onChange={(value) => setForm({...form,invoice_prefix:value})} dir="ltr" />
+            <Field label={tr("اسم الشركة","Company Name")} value={form.company_name} onChange={(value) => setForm({...form,company_name:value})} />
+            <Field label={tr("بادئة رقم الفاتورة","Invoice Number Prefix")} value={form.invoice_prefix} onChange={(value) => setForm({...form,invoice_prefix:value})} dir="ltr" />
           </div>
         </section>
 
         <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-2">
             <WalletCards className="text-brand" size={20} />
-            <h2 className="text-lg font-black">العملة والملاحظات</h2>
+            <h2 className="text-lg font-black">{tr("العملة والملاحظات","Currency & Notes")}</h2>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium">العملة الافتراضية</label>
+              <label className="mb-2 block text-sm font-medium">{tr("العملة الافتراضية","Default Currency")}</label>
               <select
                 value={form.default_currency}
                 onChange={(event) => setForm({...form,default_currency:event.target.value as "IQD" | "USD"})}
                 className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 outline-none focus:border-brand"
               >
-                <option value="IQD">IQD - دينار عراقي</option>
-                <option value="USD">USD - دولار أمريكي</option>
+                <option value="IQD">{tr("IQD - دينار عراقي","IQD - Iraqi Dinar")}</option>
+                <option value="USD">{tr("USD - دولار أمريكي","USD - US Dollar")}</option>
               </select>
             </div>
-            <Field label="ملاحظة أسفل الفاتورة" value={form.footer_note} onChange={(value) => setForm({...form,footer_note:value})} />
+            <Field label={tr("ملاحظة أسفل الفاتورة","Invoice Footer Note")} value={form.footer_note} onChange={(value) => setForm({...form,footer_note:value})} />
           </div>
 
           <div className="mt-4">
-            <label className="mb-2 block text-sm font-medium">ملاحظات الدفع</label>
+            <label className="mb-2 block text-sm font-medium">{tr("ملاحظات الدفع","Payment Notes")}</label>
             <textarea
               value={form.payment_notes}
               onChange={(event) => setForm({...form,payment_notes:event.target.value})}
@@ -171,7 +173,7 @@ export default function InvoiceSettingsPage() {
           className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3.5 font-bold text-white shadow-lg shadow-brand/20 transition hover:bg-brand-hover disabled:opacity-60"
         >
           <Save size={18} />
-          {saving ? "جاري الحفظ..." : "حفظ إعدادات الفواتير"}
+          {saving ? tr("جاري الحفظ...","Saving...") : tr("حفظ إعدادات الفواتير","Save Invoice Settings")}
         </button>
       </form>
     </div>
