@@ -11,7 +11,6 @@ import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/dashboard/NotificationBell";
 import { LanguageProvider, useLanguage } from "@/lib/language";
-import DashboardLanguageGuard from "@/components/dashboard/DashboardLanguageGuard";
 
 interface DashboardLayoutWrapperProps {
 	children: ReactNode;
@@ -222,7 +221,6 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 		<SidebarProvider>
 			<LanguageProvider>
 				<div data-spc-dashboard className="min-h-screen flex flex-col md:flex-row bg-background">
-					<DashboardLanguageGuard />
 					<Sidebar />
 					<NotificationBell />
 					<DashboardContent>{children}</DashboardContent>
