@@ -156,7 +156,8 @@ function EntryModal({kind,companyId,currency,onClose,onSaved}:{kind:"due"|"payme
         {kind!=="reminder"&&<Input label={tr("المبلغ","Amount")+" ("+currency+")*"} value={amount} onChange={setAmount} type="number" required/>}
         {kind==="payment"&&<Input label={tr("طريقة القبض","Payment method")} value={method} onChange={setMethod}/>}
         {kind==="reminder"&&<Input label={tr("عنوان التذكير","Reminder title")} value={title} onChange={setTitle}/>}
-        <Input label={kind==="reminder"?tr("تاريخ التذكير","Reminder date"):tr("تاريخ الحركة","Movement date")} value={date} onChange={setDate} type="date" required/>\n        {kind==="due"&&<Input label={tr("تاريخ الاستحقاق","Due date")} value={dueDate} onChange={setDueDate} type="date"/>}
+        <Input label={kind==="reminder"?tr("تاريخ التذكير","Reminder date"):tr("تاريخ الحركة","Movement date")} value={date} onChange={setDate} type="date" required/>
+        {kind==="due"&&<Input label={tr("تاريخ الاستحقاق","Due date")} value={dueDate} onChange={setDueDate} type="date"/>}
         <Input label={tr("ملاحظات","Notes")} value={notes} onChange={setNotes}/>
       </div>
       {error&&<p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>}
