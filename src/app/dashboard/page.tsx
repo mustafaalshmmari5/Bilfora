@@ -594,8 +594,14 @@ export default function DashboardPage() {
                   ))}
               </select>
 
-              <input type="date" value={fromDate} onChange={(e)=>setFromDate(e.target.value)} className="input" title={tr("من تاريخ","From date")} />
-              <input type="date" value={toDate} onChange={(e)=>setToDate(e.target.value)} className="input" title={tr("إلى تاريخ","To date")} />
+              <label className="space-y-1">
+                <span className="block text-xs font-bold text-muted-foreground">{tr("من تاريخ","From Date")}</span>
+                <input type="date" value={fromDate} onChange={(e)=>setFromDate(e.target.value)} className="input" />
+              </label>
+              <label className="space-y-1">
+                <span className="block text-xs font-bold text-muted-foreground">{tr("إلى تاريخ","To Date")}</span>
+                <input type="date" value={toDate} onChange={(e)=>setToDate(e.target.value)} className="input" />
+              </label>
             </div>
           </div>
         </div>
