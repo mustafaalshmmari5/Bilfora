@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Moon, Palette, Save, Sun, User } from "lucide-react";
+import Link from "next/link";
+import { Check, Moon, Palette, ReceiptText, Save, Sun, User, ArrowLeft } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { applyAccentColor } from "@/lib/appearance";
 
@@ -112,6 +113,20 @@ export default function SettingsPage() {
 
       {error && <div className="rounded-2xl border border-danger-border bg-danger-soft p-4 text-sm text-danger">{error}</div>}
       {saved && <div className="rounded-2xl border border-success-border bg-success-soft p-4 text-sm text-success">تم حفظ إعدادات المظهر لحسابك ✓</div>}
+
+      <Link
+        href="/dashboard/invoices-settings"
+        className="group flex items-center justify-between rounded-3xl border border-border bg-surface p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+      >
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-brand-soft p-3 text-brand"><ReceiptText size={21} /></div>
+          <div>
+            <h2 className="font-black">الفواتير</h2>
+            <p className="text-sm text-muted-foreground">إعدادات ترقيم الفواتير، العملة والملاحظات.</p>
+          </div>
+        </div>
+        <ArrowLeft size={19} className="text-muted-foreground transition group-hover:-translate-x-1 group-hover:text-brand" />
+      </Link>
 
       <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
         <div className="flex items-center gap-3">
