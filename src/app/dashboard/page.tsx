@@ -11,6 +11,8 @@ import {
   Filter,
   Plus,
   ReceiptText,
+  FileText,
+  Paperclip,
   Search,
   WalletCards,
   X,
@@ -48,6 +50,8 @@ type AccountRow = {
   remaining_amount: number | string;
   payment_status: "paid" | "partial" | "unpaid" | "overdue";
   last_payment_date: string | null;
+  invoice_file_path: string | null;
+  invoice_file_name: string | null;
 };
 
 const ENTRY_LABELS: Record<AccountRow["entry_type"], string> = {
@@ -96,6 +100,7 @@ export default function DashboardPage() {
   const [personFilter, setPersonFilter] = useState("all");
   const [error, setError] = useState("");
   const [paymentRow, setPaymentRow] = useState<AccountRow | null>(null);
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     company_id: "",
@@ -194,6 +199,20 @@ export default function DashboardPage() {
     });
   }, [rows, query, typeFilter, statusFilter, companyFilter, personFilter]);
 
+  const openInvoice = async (row: AccountRow) => {
+    if (!row.invoice_file_path) return;
+    const { data, error } = await supabasePersistent.storage
+      .from("spc-invoices")
+      .createSignedUrl(row.invoice_file_path, 300);
+
+    if (error || !data?.signedUrl) {
+      toast.error(tr("تعذر فتح الفاتورة.","Unable to open invoice."));
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
+
   const submitEntry = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -216,9 +235,21 @@ export default function DashboardPage() {
       return;
     }
 
+    if (invoiceFile) {
+      const allowed = ["application/pdf","image/jpeg","image/png","image/webp"];
+      if (!allowed.includes(invoiceFile.type)) {
+        setError(tr("الفاتورة لازم تكون PDF أو صورة.","Invoice must be a PDF or image."));
+        return;
+      }
+      if (invoiceFile.size > 10 * 1024 * 1024) {
+        setError(tr("حجم الفاتورة يجب ألا يتجاوز 10MB.","Invoice file must not exceed 10MB."));
+        return;
+      }
+    }
+
     setSaving(true);
 
-    const { error: rpcError } = await supabasePersistent.rpc("spc_add_account_entry", {
+    const { data: rpcData, error: rpcError } = await supabasePersistent.rpc("spc_add_account_entry", {
       p_company_id: form.company_id,
       p_entry_type: form.entry_type,
       p_service_name: form.service_name.trim(),
@@ -233,6 +264,44 @@ export default function DashboardPage() {
     if (rpcError) {
       setError(rpcError.message);
     } else {
+      if (invoiceFile) {
+        const receivableId = rpcData?.[0]?.receivable_id as string | undefined;
+        const { data: authData } = await supabasePersistent.auth.getUser();
+        const userId = authData.user?.id;
+
+        if (!receivableId || !userId) {
+          toast.error(tr("تم حفظ الحركة لكن تعذر ربط الفاتورة.","Movement saved, but the invoice could not be linked."));
+        } else {
+          const safeName = invoiceFile.name.replace(/[^a-zA-Z0-9._-]+/g, "-");
+          const filePath = userId + "/" + receivableId + "/" + Date.now() + "-" + safeName;
+
+          const { error: uploadError } = await supabasePersistent.storage
+            .from("spc-invoices")
+            .upload(filePath, invoiceFile, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: invoiceFile.type,
+            });
+
+          if (uploadError) {
+            toast.error(tr("تم حفظ الحركة لكن فشل رفع الفاتورة.","Movement saved, but invoice upload failed."));
+          } else {
+            const { error: attachError } = await supabasePersistent
+              .from("spc_receivables")
+              .update({
+                invoice_file_path: filePath,
+                invoice_file_name: invoiceFile.name,
+              })
+              .eq("id", receivableId);
+
+            if (attachError) {
+              await supabasePersistent.storage.from("spc-invoices").remove([filePath]);
+              toast.error(tr("تم حفظ الحركة لكن تعذر ربط الفاتورة.","Movement saved, but the invoice could not be linked."));
+            }
+          }
+        }
+      }
+
       const companyName = selectedCompany?.name || tr("الشركة","Company");
       const currency = selectedCompany?.currency || "IQD";
       const remaining = Math.max(due - received, 0);
@@ -253,6 +322,7 @@ export default function DashboardPage() {
         received_amount: "",
         notes: "",
       }));
+      setInvoiceFile(null);
       await load();
     }
 
@@ -412,12 +482,28 @@ export default function DashboardPage() {
             </div>
           </FieldWrap>
 
-          <FieldWrap label={tr("ملاحظات","Notes")} className="lg:col-span-9">
+          <FieldWrap label={tr("ملاحظات","Notes")} className="lg:col-span-6">
             <input
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               className="input"
             />
+          </FieldWrap>
+
+          <FieldWrap label={tr("فاتورة الحركة (اختياري)","Invoice Attachment (Optional)")} className="lg:col-span-3">
+            <label className="input flex cursor-pointer items-center gap-2 overflow-hidden">
+              <Paperclip size={16} className="shrink-0 text-brand" />
+              <span className="truncate text-sm">
+                {invoiceFile ? invoiceFile.name : tr("اختيار PDF أو صورة","Choose PDF or image")}
+              </span>
+              <input
+                key={invoiceFile ? invoiceFile.name : "empty-invoice"}
+                type="file"
+                accept=".pdf,image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => setInvoiceFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
           </FieldWrap>
 
           <div className="flex items-end lg:col-span-3">
@@ -513,7 +599,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1180px] text-sm">
+            <table className="w-full min-w-[1280px] text-sm">
               <thead className="bg-surface-2 text-muted-foreground">
                 <tr>
                   <th className="p-4 text-right">{tr("النوع","Type")}</th>
@@ -525,6 +611,7 @@ export default function DashboardPage() {
                   <th className="p-4 text-right">{tr("المستلم","Received")}</th>
                   <th className="p-4 text-right">{tr("الباقي","Remaining")}</th>
                   <th className="p-4 text-right">{tr("الحالة","Status")}</th>
+                  <th className="p-4 text-right">{tr("الفاتورة","Invoice")}</th>
                   <th className="p-4 text-right">{tr("إجراء","Action")}</th>
                 </tr>
               </thead>
@@ -551,6 +638,21 @@ export default function DashboardPage() {
                     <td className="p-4 font-bold text-brand">{money(row.received_amount, row.currency)}</td>
                     <td className="p-4 font-black">{money(row.remaining_amount, row.currency)}</td>
                     <td className="p-4"><StatusBadge status={row.payment_status} /></td>
+                    <td className="p-4">
+                      {row.invoice_file_path ? (
+                        <button
+                          type="button"
+                          onClick={() => void openInvoice(row)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-bold text-brand hover:bg-brand-soft"
+                          title={row.invoice_file_name || undefined}
+                        >
+                          <FileText size={15} />
+                          {tr("عرض","View")}
+                        </button>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
                     <td className="p-4">
                       {Number(row.remaining_amount) > 0 ? (
                         <button

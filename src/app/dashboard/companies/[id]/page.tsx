@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Building2, Plus, BanknoteArrowDown, BellRing, X } from "lucide-react";
+import { ArrowRight, Building2, Plus, BanknoteArrowDown, BellRing, FileText, X } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import CompanySwitcher from "@/components/dashboard/CompanySwitcher";
 import { useLanguage } from "@/lib/language";
@@ -15,6 +15,7 @@ type Company = {
 type Ledger = {
   id:string; entry_type:"receivable"|"payment"; entry_date:string; description:string; reference_number:string|null;
   notes:string|null; amount:number|string; balance_after:number|string;
+  invoice_file_path:string|null; invoice_file_name:string|null;
 };
 
 export default function CompanyAccountPage() {
@@ -36,6 +37,15 @@ export default function CompanyAccountPage() {
     setLoading(false);
   };
   useEffect(()=>{ if(id) load(); },[id]);
+
+  const openInvoice = async (row: Ledger) => {
+    if (!row.invoice_file_path) return;
+    const { data, error } = await supabasePersistent.storage
+      .from("spc-invoices")
+      .createSignedUrl(row.invoice_file_path, 300);
+    if (error || !data?.signedUrl) return;
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
 
   if (loading) return <div className="p-10 text-center text-muted-foreground">{tr("جاري تحميل الحساب...", "Loading account...")}</div>;
   if (!company) return <div className="p-10 text-center">{tr("الشركة غير موجودة.", "Company not found.")}</div>;
@@ -79,9 +89,9 @@ export default function CompanyAccountPage() {
           <div className="p-12 text-center text-muted-foreground">{tr("ماكو حركات بعد. أضف أول استحقاق.", "No movements yet. Add the first receivable.")}</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-sm">
+            <table className="w-full min-w-[880px] text-sm">
               <thead className="bg-surface-2 text-muted-foreground">
-                <tr><th className="p-4 text-right">{tr("التاريخ","Date")}</th><th className="p-4 text-right">{tr("نوع الحركة","Type")}</th><th className="p-4 text-right">{tr("البيان","Description")}</th><th className="p-4 text-right">{tr("المرجع","Reference")}</th><th className="p-4 text-right">{tr("المبلغ","Amount")}</th><th className="p-4 text-right">{tr("الرصيد بعد الحركة","Balance after")}</th></tr>
+                <tr><th className="p-4 text-right">{tr("التاريخ","Date")}</th><th className="p-4 text-right">{tr("نوع الحركة","Type")}</th><th className="p-4 text-right">{tr("البيان","Description")}</th><th className="p-4 text-right">{tr("المرجع","Reference")}</th><th className="p-4 text-right">{tr("المبلغ","Amount")}</th><th className="p-4 text-right">{tr("الرصيد بعد الحركة","Balance after")}</th><th className="p-4 text-right">{tr("الفاتورة","Invoice")}</th></tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {ledger.map(row=>(
@@ -92,6 +102,13 @@ export default function CompanyAccountPage() {
                     <td className="p-4 text-muted-foreground">{row.reference_number?<LatinNumber>{row.reference_number}</LatinNumber>:"—"}</td>
                     <td className={"p-4 font-black "+(row.entry_type==="payment"?"text-emerald-600":"text-foreground")}><LatinNumber>{row.entry_type==="payment"?"- ":"+ "}{fmt(row.amount)}</LatinNumber></td>
                     <td className="p-4 font-black"><LatinNumber>{fmt(row.balance_after)}</LatinNumber></td>
+                    <td className="p-4">
+                      {row.invoice_file_path ? (
+                        <button type="button" onClick={()=>void openInvoice(row)} className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-bold text-brand hover:bg-brand-soft" title={row.invoice_file_name||undefined}>
+                          <FileText size={15}/>{tr("عرض","View")}
+                        </button>
+                      ) : <span className="text-muted-foreground">—</span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
