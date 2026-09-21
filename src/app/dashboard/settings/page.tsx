@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Moon, Palette, ReceiptText, Save, Sun, User, ArrowLeft } from "lucide-react";
+import { Check, Moon, Palette, ReceiptText, Save, Sun, User, ArrowLeft, History, DatabaseBackup } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { applyAccentColor } from "@/lib/appearance";
 import { useLanguage } from "@/lib/language";
@@ -129,6 +129,15 @@ export default function SettingsPage() {
         </div>
         <ArrowLeft size={19} className="text-muted-foreground transition group-hover:-translate-x-1 group-hover:text-brand" />
       </Link>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link href="/dashboard/audit-log" className="group flex items-center justify-between rounded-3xl border border-border bg-surface p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md">
+          <div className="flex items-center gap-3"><div className="rounded-2xl bg-brand-soft p-3 text-brand"><History size={21}/></div><div><h2 className="font-black">{tr("سجل التغييرات","Audit Log")}</h2><p className="text-sm text-muted-foreground">{tr("تتبع إضافة وتعديل وحذف الحركات.","Track movement additions, edits and deletions.")}</p></div></div><ArrowLeft size={19} className="text-muted-foreground"/>
+        </Link>
+        <Link href="/dashboard/backups" className="group flex items-center justify-between rounded-3xl border border-border bg-surface p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md">
+          <div className="flex items-center gap-3"><div className="rounded-2xl bg-brand-soft p-3 text-brand"><DatabaseBackup size={21}/></div><div><h2 className="font-black">{tr("النسخ الاحتياطية","Backups")}</h2><p className="text-sm text-muted-foreground">{tr("نسخة تلقائية يومية لمدة 30 يوم.","Daily automatic snapshots retained for 30 days.")}</p></div></div><ArrowLeft size={19} className="text-muted-foreground"/>
+        </Link>
+      </div>
 
       <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
         <div className="flex items-center gap-3">

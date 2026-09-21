@@ -16,11 +16,18 @@ import {
   Search,
   WalletCards,
   X,
+  FileSpreadsheet,
+  Printer,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import CompanySwitcher from "@/components/dashboard/CompanySwitcher";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/language";
+import InvoiceActions from "@/components/dashboard/InvoiceActions";
+import ReceivableEditModal from "@/components/dashboard/ReceivableEditModal";
+import { exportMovementsExcel, exportMovementsPdf } from "@/lib/exportMovements";
 
 type Company = {
   id: string;
@@ -98,8 +105,11 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("all");
   const [personFilter, setPersonFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [error, setError] = useState("");
   const [paymentRow, setPaymentRow] = useState<AccountRow | null>(null);
+  const [editRow, setEditRow] = useState<AccountRow | null>(null);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
@@ -192,23 +202,27 @@ export default function DashboardPage() {
       const matchesStatus = statusFilter === "all" || row.payment_status === statusFilter;
       const entityFilter = companyFilter !== "all" ? companyFilter : personFilter;
       const matchesEntity = entityFilter === "all" || row.company_id === entityFilter;
+      const matchesFrom = !fromDate || row.issue_date >= fromDate;
+      const matchesTo = !toDate || row.issue_date <= toDate;
 
-      return matchesText && matchesType && matchesStatus && matchesEntity;
+      return matchesText && matchesType && matchesStatus && matchesEntity && matchesFrom && matchesTo;
     });
-  }, [rows, query, typeFilter, statusFilter, companyFilter, personFilter]);
+  }, [rows, query, typeFilter, statusFilter, companyFilter, personFilter, fromDate, toDate]);
 
-  const openInvoice = async (row: AccountRow) => {
-    if (!row.invoice_file_path) return;
-    const { data, error } = await supabasePersistent.storage
-      .from("spc-invoices")
-      .createSignedUrl(row.invoice_file_path, 300);
-
-    if (error || !data?.signedUrl) {
-      toast.error(tr("تعذر فتح الفاتورة.","Unable to open invoice."));
+  const deleteReceivable = async (row: AccountRow) => {
+    if (Number(row.received_amount) > 0) {
+      toast.error(tr("هذه الحركة عليها دفعات. احذف أو عدّل الدفعات أولاً.","This movement has payments. Edit or delete those payments first."));
       return;
     }
-
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    if (!window.confirm(tr("حذف هذه الحركة نهائياً؟","Delete this movement permanently?"))) return;
+    const { error } = await supabasePersistent.rpc("spc_delete_receivable_safe",{p_receivable_id:row.id});
+    if (error) {
+      toast.error(error.message.includes("HAS_PAYMENTS")?tr("هذه الحركة عليها دفعات.","This movement has payments."):error.message);
+      return;
+    }
+    if (row.invoice_file_path) await supabasePersistent.storage.from("spc-invoices").remove([row.invoice_file_path]);
+    toast.success(tr("تم حذف الحركة.","Movement deleted."));
+    await load();
   };
 
   const submitEntry = async (e: FormEvent) => {
@@ -511,9 +525,13 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <h2 className="text-xl font-black">{tr("سجل الحركات","Movement History")}</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" onClick={()=>void exportMovementsExcel(filteredRows as any[], document.documentElement.dir==="rtl"?"ar":"en")} className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-bold hover:bg-surface-inset"><FileSpreadsheet size={15}/>{tr("Excel","Excel")}</button>
+                <button type="button" onClick={()=>exportMovementsPdf(filteredRows as any[], document.documentElement.dir==="rtl"?"ar":"en")} className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-bold hover:bg-surface-inset"><Printer size={15}/>{tr("PDF","PDF")}</button>
+              </div>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-7">
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                 <input
@@ -575,6 +593,9 @@ export default function DashboardPage() {
                     </option>
                   ))}
               </select>
+
+              <input type="date" value={fromDate} onChange={(e)=>setFromDate(e.target.value)} className="input" title={tr("من تاريخ","From date")} />
+              <input type="date" value={toDate} onChange={(e)=>setToDate(e.target.value)} className="input" title={tr("إلى تاريخ","To date")} />
             </div>
           </div>
         </div>
@@ -627,34 +648,13 @@ export default function DashboardPage() {
                     <td className="p-4 font-bold text-brand">{money(row.received_amount, row.currency)}</td>
                     <td className="p-4 font-black">{money(row.remaining_amount, row.currency)}</td>
                     <td className="p-4"><StatusBadge status={row.payment_status} /></td>
+                    <td className="p-4"><InvoiceActions receivableId={row.id} filePath={row.invoice_file_path} fileName={row.invoice_file_name} onChanged={load}/></td>
                     <td className="p-4">
-                      {row.invoice_file_path ? (
-                        <button
-                          type="button"
-                          onClick={() => void openInvoice(row)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-bold text-brand hover:bg-brand-soft"
-                          title={row.invoice_file_name || undefined}
-                        >
-                          <FileText size={15} />
-                          {tr("عرض","View")}
-                        </button>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      {Number(row.remaining_amount) > 0 ? (
-                        <button
-                          onClick={() => setPaymentRow(row)}
-                          className="rounded-xl bg-brand px-3 py-2 text-xs font-bold text-white hover:bg-brand-hover"
-                        >
-                          تسجيل قبض
-                        </button>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-brand">
-                          <CheckCircle2 size={15} /> {tr("مكتمل","Completed")}
-                        </span>
-                      )}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {Number(row.remaining_amount) > 0 ? <button onClick={() => setPaymentRow(row)} className="rounded-xl bg-brand px-3 py-2 text-xs font-bold text-white hover:bg-brand-hover">{tr("تسجيل قبض","Record Payment")}</button> : <span className="inline-flex items-center gap-1 text-xs font-bold text-brand"><CheckCircle2 size={15}/>{tr("مكتمل","Completed")}</span>}
+                        <button type="button" onClick={()=>setEditRow(row)} className="rounded-xl border border-border bg-surface-2 p-2 text-muted-foreground hover:text-brand" title={tr("تعديل","Edit")}><Pencil size={14}/></button>
+                        <button type="button" onClick={()=>void deleteReceivable(row)} className="rounded-xl border border-red-100 bg-red-50 p-2 text-red-600 hover:bg-red-100" title={tr("حذف","Delete")}><Trash2 size={14}/></button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -663,6 +663,8 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {editRow && <ReceivableEditModal row={editRow} onClose={()=>setEditRow(null)} onSaved={async()=>{setEditRow(null);await load();}} />}
 
       {paymentRow && (
         <PaymentModal

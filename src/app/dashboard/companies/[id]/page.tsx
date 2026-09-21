@@ -3,10 +3,13 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Building2, Plus, BanknoteArrowDown, BellRing, FileText, X } from "lucide-react";
+import { ArrowRight, Building2, Plus, BanknoteArrowDown, BellRing, X, Pencil, Trash2 } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import CompanySwitcher from "@/components/dashboard/CompanySwitcher";
 import { useLanguage } from "@/lib/language";
+import InvoiceActions from "@/components/dashboard/InvoiceActions";
+import LedgerEditModal from "@/components/dashboard/LedgerEditModal";
+import { toast } from "sonner";
 
 type Company = {
   id:string; name:string; sap_code:string; main_service:string|null; currency:"IQD"|"USD";
@@ -25,6 +28,7 @@ export default function CompanyAccountPage() {
   const [ledger,setLedger]=useState<Ledger[]>([]);
   const [loading,setLoading]=useState(true);
   const [modal,setModal]=useState<"due"|"payment"|"reminder"|null>(null);
+  const [editRow,setEditRow]=useState<Ledger|null>(null);
   const { tr } = useLanguage();
 
   const load = async () => {
@@ -38,13 +42,21 @@ export default function CompanyAccountPage() {
   };
   useEffect(()=>{ if(id) load(); },[id]);
 
-  const openInvoice = async (row: Ledger) => {
-    if (!row.invoice_file_path) return;
-    const { data, error } = await supabasePersistent.storage
-      .from("spc-invoices")
-      .createSignedUrl(row.invoice_file_path, 300);
-    if (error || !data?.signedUrl) return;
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  const deleteLedgerRow = async (row: Ledger) => {
+    if (!window.confirm(tr("حذف هذه الحركة نهائياً؟","Delete this movement permanently?"))) return;
+    if (row.entry_type === "receivable") {
+      const { error } = await supabasePersistent.rpc("spc_delete_receivable_safe",{p_receivable_id:row.id});
+      if (error) {
+        toast.error(error.message.includes("HAS_PAYMENTS")?tr("الاستحقاق عليه دفعات. احذف أو عدّل الدفعات أولاً.","This receivable has payments. Edit or delete those payments first."):error.message);
+        return;
+      }
+      if (row.invoice_file_path) await supabasePersistent.storage.from("spc-invoices").remove([row.invoice_file_path]);
+    } else {
+      const { error } = await supabasePersistent.from("spc_payments").delete().eq("id",row.id);
+      if (error) { toast.error(error.message); return; }
+    }
+    toast.success(tr("تم حذف الحركة.","Movement deleted."));
+    await load();
   };
 
   if (loading) return <div className="p-10 text-center text-muted-foreground">{tr("جاري تحميل الحساب...", "Loading account...")}</div>;
@@ -91,7 +103,7 @@ export default function CompanyAccountPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[880px] text-sm">
               <thead className="bg-surface-2 text-muted-foreground">
-                <tr><th className="p-4 text-right">{tr("التاريخ","Date")}</th><th className="p-4 text-right">{tr("نوع الحركة","Type")}</th><th className="p-4 text-right">{tr("البيان","Description")}</th><th className="p-4 text-right">{tr("المبلغ","Amount")}</th><th className="p-4 text-right">{tr("الرصيد بعد الحركة","Balance after")}</th><th className="p-4 text-right">{tr("الفاتورة","Invoice")}</th></tr>
+                <tr><th className="p-4 text-right">{tr("التاريخ","Date")}</th><th className="p-4 text-right">{tr("نوع الحركة","Type")}</th><th className="p-4 text-right">{tr("البيان","Description")}</th><th className="p-4 text-right">{tr("المبلغ","Amount")}</th><th className="p-4 text-right">{tr("الرصيد بعد الحركة","Balance after")}</th><th className="p-4 text-right">{tr("الفاتورة","Invoice")}</th><th className="p-4 text-right">{tr("إجراء","Action")}</th></tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {ledger.map(row=>(
@@ -101,13 +113,8 @@ export default function CompanyAccountPage() {
                     <td className="p-4 font-medium">{row.description}</td>
                     <td className={"p-4 font-black "+(row.entry_type==="payment"?"text-emerald-600":"text-foreground")}><LatinNumber>{row.entry_type==="payment"?"- ":"+ "}{fmt(row.amount)}</LatinNumber></td>
                     <td className="p-4 font-black"><LatinNumber>{fmt(row.balance_after)}</LatinNumber></td>
-                    <td className="p-4">
-                      {row.invoice_file_path ? (
-                        <button type="button" onClick={()=>void openInvoice(row)} className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs font-bold text-brand hover:bg-brand-soft" title={row.invoice_file_name||undefined}>
-                          <FileText size={15}/>{tr("عرض","View")}
-                        </button>
-                      ) : <span className="text-muted-foreground">—</span>}
-                    </td>
+                    <td className="p-4">{row.entry_type==="receivable"?<InvoiceActions receivableId={row.id} filePath={row.invoice_file_path} fileName={row.invoice_file_name} onChanged={load}/>:<span className="text-muted-foreground">—</span>}</td>
+                    <td className="p-4"><div className="flex items-center gap-1.5"><button type="button" onClick={()=>setEditRow(row)} className="rounded-xl border border-border bg-surface-2 p-2 text-muted-foreground hover:text-brand" title={tr("تعديل","Edit")}><Pencil size={14}/></button><button type="button" onClick={()=>void deleteLedgerRow(row)} className="rounded-xl border border-red-100 bg-red-50 p-2 text-red-600 hover:bg-red-100" title={tr("حذف","Delete")}><Trash2 size={14}/></button></div></td>
                   </tr>
                 ))}
               </tbody>
@@ -116,6 +123,7 @@ export default function CompanyAccountPage() {
         )}
       </div>
 
+      {editRow && <LedgerEditModal id={editRow.id} type={editRow.entry_type} currency={company.currency} onClose={()=>setEditRow(null)} onSaved={async()=>{setEditRow(null);await load();}} />}
       {modal && <EntryModal kind={modal} companyId={id} currency={company.currency} onClose={()=>setModal(null)} onSaved={async()=>{setModal(null);await load();}} />}
     </div>
   );
