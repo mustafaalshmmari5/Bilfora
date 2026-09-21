@@ -302,11 +302,13 @@ export default function DashboardPage() {
               className="input"
             >
               <option value="">اختار الشركة</option>
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>
-                  {company.name} — {company.sap_code}
-                </option>
-              ))}
+              {companies
+                .filter((company) => company.party_type === "company")
+                .map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name} — {company.sap_code}
+                  </option>
+                ))}
             </select>
           </FieldWrap>
 
