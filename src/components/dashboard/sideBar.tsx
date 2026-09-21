@@ -95,6 +95,13 @@ export default function Sidebar() {
         <SidebarNavItem href="/dashboard/settings" label="الإعدادات" icon={Settings} active={pathname.startsWith("/dashboard/settings")} isCollapsed={isCollapsed} onClick={()=>setIsMobileMenuOpen(false)} onMouseEnter={e=>handleHover(e,"الإعدادات")} onMouseLeave={()=>setHoveredItem(null)}/>
       </nav>
       <div className="border-t border-border bg-surface-2 p-4 space-y-2">
+        <div className={cn("flex items-center rounded-2xl border border-border bg-surface p-2.5 shadow-sm",isCollapsed?"justify-center":"gap-3")}>
+          <div className="relative shrink-0">
+            <img src="/mustafa-profile.jpeg" alt="mustafa" className="h-10 w-10 rounded-full object-cover ring-2 ring-brand-soft" />
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-surface bg-emerald-500" />
+          </div>
+          {!isCollapsed&&<span className="truncate text-sm font-black">mustafa</span>}
+        </div>
         <ThemeToggle compact={isCollapsed} className="w-full" />
         <button onClick={()=>setIsLogoutOpen(true)} onMouseEnter={e=>handleHover(e,"تسجيل الخروج")} onMouseLeave={()=>setHoveredItem(null)} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-danger hover:bg-danger-soft"><LogOut size={isCollapsed?22:18}/>{!isCollapsed&&<span>تسجيل الخروج</span>}</button>
       </div>
