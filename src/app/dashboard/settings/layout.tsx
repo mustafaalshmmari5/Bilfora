@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
 	User,
-	FileText,
 	Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,7 +12,6 @@ import { m } from "framer-motion";
 
 const SETTINGS_TABS = [
 	{ href: "/dashboard/settings", label: "عام", icon: User, exact: true },
-	{ href: "/dashboard/settings/invoicing", label: "الفواتير", icon: FileText },
 	{ href: "/dashboard/settings/notifications", label: "التنبيهات", icon: Bell, disabled: true },
 ] as const;
 
