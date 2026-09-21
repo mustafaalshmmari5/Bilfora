@@ -44,7 +44,7 @@ export function SidebarLogoutModal({
                             هل تود المغادرة؟
                         </h3>
                         <p className="text-subtle text-center mb-8 leading-relaxed">
-                            سيتم تسجيل خروجك من حسابك في بلفورا. يمكنك دائمًا العودة لاحقًا.
+                            سيتم تسجيل خروجك من حسابك في مستحقات الشركات، يمكنك دائماً العودة لاحقاً.
                         </p>
 
                         <div className="flex items-center gap-3">
