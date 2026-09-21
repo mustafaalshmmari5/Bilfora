@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Moon, Palette, ReceiptText, Save, Sun, User, ArrowLeft } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { applyAccentColor } from "@/lib/appearance";
+import { useLanguage } from "@/lib/language";
 
 const PRESETS = [
   "#0f766e",
@@ -23,6 +24,7 @@ function applyTheme(mode: "light" | "dark") {
 }
 
 export default function SettingsPage() {
+  const { tr } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -35,7 +37,7 @@ export default function SettingsPage() {
     const load = async () => {
       const { data: auth } = await supabasePersistent.auth.getUser();
       if (!auth.user) {
-        setError("تعذر تحميل الحساب.");
+        setError(tr("تعذر تحميل الحساب.","Unable to load account."));
         setLoading(false);
         return;
       }
@@ -84,7 +86,7 @@ export default function SettingsPage() {
 
     const { data: auth } = await supabasePersistent.auth.getUser();
     if (!auth.user) {
-      setError("انتهت الجلسة. سجل دخول مرة ثانية.");
+      setError(tr("انتهت الجلسة. سجل دخول مرة ثانية.","Session expired. Please sign in again."));
       setSaving(false);
       return;
     }
@@ -101,18 +103,18 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return <div className="p-10 text-center text-muted-foreground">جاري تحميل الإعدادات...</div>;
+    return <div className="p-10 text-center text-muted-foreground">{tr("جاري تحميل الإعدادات...","Loading settings...")}</div>;
   }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-10">
       <div>
-        <h1 className="text-3xl font-black">الإعدادات</h1>
-        <p className="mt-2 text-sm text-muted-foreground">خصّص شكل نظام حسابات SPC حسب ذوقك.</p>
+        <h1 className="text-3xl font-black">{tr("الإعدادات","Settings")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{tr("خصّص شكل نظام حسابات SPC حسب ذوقك.","Customize the SPC Accounts System appearance.")}</p>
       </div>
 
       {error && <div className="rounded-2xl border border-danger-border bg-danger-soft p-4 text-sm text-danger">{error}</div>}
-      {saved && <div className="rounded-2xl border border-success-border bg-success-soft p-4 text-sm text-success">تم حفظ إعدادات المظهر لحسابك ✓</div>}
+      {saved && <div className="rounded-2xl border border-success-border bg-success-soft p-4 text-sm text-success">{tr("تم حفظ إعدادات المظهر لحسابك ✓","Appearance settings saved ✓")}</div>}
 
       <Link
         href="/dashboard/invoices-settings"
@@ -121,8 +123,8 @@ export default function SettingsPage() {
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-brand-soft p-3 text-brand"><ReceiptText size={21} /></div>
           <div>
-            <h2 className="font-black">الفواتير</h2>
-            <p className="text-sm text-muted-foreground">إعدادات ترقيم الفواتير، العملة والملاحظات.</p>
+            <h2 className="font-black">{tr("الفواتير","Invoices")}</h2>
+            <p className="text-sm text-muted-foreground">{tr("إعدادات ترقيم الفواتير، العملة والملاحظات.","Invoice numbering, currency and notes settings.")}</p>
           </div>
         </div>
         <ArrowLeft size={19} className="text-muted-foreground transition group-hover:-translate-x-1 group-hover:text-brand" />
@@ -132,8 +134,8 @@ export default function SettingsPage() {
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-brand-soft p-3 text-brand"><User size={21} /></div>
           <div>
-            <h2 className="font-black">{name || "المستخدم"}</h2>
-            <p className="text-sm text-muted-foreground">إعدادات المظهر الخاصة بحسابك</p>
+            <h2 className="font-black">{name || tr("المستخدم","User")}</h2>
+            <p className="text-sm text-muted-foreground">{tr("إعدادات المظهر الخاصة بحسابك","Your account appearance settings")}</p>
           </div>
         </div>
       </div>
@@ -142,8 +144,8 @@ export default function SettingsPage() {
         <div className="mb-5 flex items-center gap-2">
           <Moon className="text-brand" size={20} />
           <div>
-            <h2 className="text-lg font-black">الوضع</h2>
-            <p className="text-sm text-muted-foreground">اختار نهاري أو ليلي.</p>
+            <h2 className="text-lg font-black">{tr("الوضع","Theme")}</h2>
+            <p className="text-sm text-muted-foreground">{tr("اختار نهاري أو ليلي.","Choose light or dark mode.")}</p>
           </div>
         </div>
 
@@ -152,13 +154,13 @@ export default function SettingsPage() {
             onClick={() => chooseTheme("light")}
             className={"flex items-center justify-center gap-2 rounded-2xl border p-4 font-bold transition " + (theme === "light" ? "border-brand bg-brand-soft text-brand" : "border-border bg-surface-2")}
           >
-            <Sun size={19} /> نهاري
+            <Sun size={19} /> {tr("نهاري","Light")}
           </button>
           <button
             onClick={() => chooseTheme("dark")}
             className={"flex items-center justify-center gap-2 rounded-2xl border p-4 font-bold transition " + (theme === "dark" ? "border-brand bg-brand-soft text-brand" : "border-border bg-surface-2")}
           >
-            <Moon size={19} /> ليلي
+            <Moon size={19} /> {tr("ليلي","Dark")}
           </button>
         </div>
       </div>
@@ -167,8 +169,8 @@ export default function SettingsPage() {
         <div className="mb-5 flex items-center gap-2">
           <Palette className="text-brand" size={20} />
           <div>
-            <h2 className="text-lg font-black">لون النظام</h2>
-            <p className="text-sm text-muted-foreground">اختار لون جاهز أو حدد أي لون يعجبك.</p>
+            <h2 className="text-lg font-black">{tr("لون النظام","System Color")}</h2>
+            <p className="text-sm text-muted-foreground">{tr("اختار لون جاهز أو حدد أي لون يعجبك.","Choose a preset color or pick your own.")}</p>
           </div>
         </div>
 
@@ -190,7 +192,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <label className="text-sm font-medium">لون مخصص</label>
+          <label className="text-sm font-medium">{tr("لون مخصص","Custom Color")}</label>
           <input
             type="color"
             value={accent}
@@ -218,7 +220,7 @@ export default function SettingsPage() {
         className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3.5 font-bold text-white shadow-lg shadow-brand/20 transition hover:bg-brand-hover disabled:opacity-60"
       >
         <Save size={18} />
-        {saving ? "جاري الحفظ..." : "حفظ المظهر"}
+        {saving ? tr("جاري الحفظ...","Saving...") : tr("حفظ المظهر","Save Appearance")}
       </button>
     </div>
   );
