@@ -12,10 +12,12 @@ import {
   ReceiptText,
   Sun,
   WalletCards,
+  Languages,
   X,
 } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { applyAccentColor } from "@/lib/appearance";
+import { useLanguage } from "@/lib/language";
 
 type NotificationRow = {
   id: string;
@@ -57,6 +59,7 @@ export default function NotificationBell() {
   const [busy, setBusy] = useState(false);
   const [accent, setAccent] = useState("#0f766e");
   const [dark, setDark] = useState(false);
+  const { lang, toggleLanguage, tr } = useLanguage();
   const mounted = useRef(false);
 
   const load = useCallback(async () => {
@@ -173,6 +176,17 @@ export default function NotificationBell() {
         >
           <Palette size={20} className="drop-shadow-sm" />
         </button>
+
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          className="flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-2xl border border-border bg-surface px-3 text-xs font-black text-foreground shadow-lg transition hover:-translate-y-0.5 hover:bg-surface-2"
+          aria-label={tr("التحويل إلى الإنجليزية", "Switch to Arabic")}
+          title={tr("English", "العربية")}
+        >
+          <Languages size={17} className="text-brand" />
+          <span>{lang === "ar" ? "EN" : "ع"}</span>
+        </button>
       </div>
 
       {panel && (
@@ -187,9 +201,9 @@ export default function NotificationBell() {
             <div className="mt-2 w-[min(92vw,390px)] overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl">
               <div className="flex items-center justify-between border-b border-border p-4">
                 <div>
-                  <h2 className="font-black">الإشعارات</h2>
+                  <h2 className="font-black">{tr("الإشعارات", "Notifications")}</h2>
                   <p className="text-xs text-muted-foreground">
-                    {unread ? toLatinDigits(unread) + " غير مقروء" : "كلشي مقروء"}
+                    {unread ? toLatinDigits(unread) + tr(" غير مقروء", " unread") : tr("كلشي مقروء", "All read")}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -201,7 +215,7 @@ export default function NotificationBell() {
                       className="inline-flex items-center gap-1 rounded-xl px-2.5 py-2 text-xs font-bold text-brand hover:bg-brand-soft disabled:opacity-60"
                     >
                       <CheckCheck size={15} />
-                      قراءة الكل
+                      {tr("قراءة الكل", "Mark all read")}
                     </button>
                   )}
                   <button
@@ -217,7 +231,7 @@ export default function NotificationBell() {
               <div className="max-h-[65vh] overflow-y-auto">
                 {items.length === 0 ? (
                   <div className="p-8 text-center text-sm text-muted-foreground">
-                    ماكو إشعارات حالياً.
+                    {tr("ماكو إشعارات حالياً.", "No notifications right now.")}
                   </div>
                 ) : (
                   items.map((item) => {
@@ -280,8 +294,8 @@ export default function NotificationBell() {
           ) : (
             <div className="mt-2 w-64 rounded-3xl border border-border bg-surface p-4 shadow-2xl">
               <div className="mb-4">
-                <h2 className="font-black">المظهر</h2>
-                <p className="mt-1 text-xs text-muted-foreground">تغيير سريع للواجهة</p>
+                <h2 className="font-black">{tr("المظهر", "Appearance")}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">{tr("تغيير سريع للواجهة", "Quick appearance settings")}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -296,7 +310,7 @@ export default function NotificationBell() {
                   }
                 >
                   <Sun size={15} />
-                  نهاري
+                  {tr("نهاري", "Light")}
                 </button>
                 <button
                   type="button"
@@ -309,13 +323,13 @@ export default function NotificationBell() {
                   }
                 >
                   <Moon size={15} />
-                  ليلي
+                  {tr("ليلي", "Dark")}
                 </button>
               </div>
 
               <div className="my-4 h-px bg-border" />
 
-              <p className="mb-3 text-xs font-bold text-muted-foreground">لون الواجهة</p>
+              <p className="mb-3 text-xs font-bold text-muted-foreground">{tr("لون الواجهة", "Accent color")}</p>
               <div className="grid grid-cols-4 gap-2">
                 {COLORS.map((color) => (
                   <button
@@ -338,7 +352,7 @@ export default function NotificationBell() {
                 onClick={() => setPanel(null)}
                 className="mt-4 block rounded-xl bg-surface-2 px-3 py-2.5 text-center text-xs font-bold text-brand hover:bg-brand-soft"
               >
-                إعدادات المظهر الكاملة
+                {tr("إعدادات المظهر الكاملة", "Full appearance settings")}
               </Link>
             </div>
           )}

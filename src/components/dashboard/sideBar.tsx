@@ -14,6 +14,7 @@ import { SidebarLogoutModal } from "./sidebar/SidebarLogoutModal";
 import { SidebarNavItem } from "./sidebar/SidebarNavItem";
 import { SidebarTooltip } from "./sidebar/SidebarTooltip";
 import { applyAccentColor } from "@/lib/appearance";
+import { useLanguage } from "@/lib/language";
 
 export default function Sidebar() {
   const { toast } = useToast();
@@ -25,6 +26,7 @@ export default function Sidebar() {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { tr } = useLanguage();
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
@@ -76,8 +78,8 @@ export default function Sidebar() {
   };
 
   const items = [
-    { href:"/dashboard", label:"لوحة التحكم", icon:LayoutDashboard },
-    { href:"/dashboard/companies", label:"الشركات والحسابات", icon:Building2 },
+    { href:"/dashboard", label:tr("لوحة التحكم","Dashboard"), icon:LayoutDashboard },
+    { href:"/dashboard/companies", label:tr("الشركات والحسابات","Companies & Accounts"), icon:Building2 },
   ];
 
   return <>
@@ -88,10 +90,10 @@ export default function Sidebar() {
           <><Link href="/dashboard" className="flex items-center"><img src="/spc-logo.svg" alt="SPC - Solution Portal Company" className="h-auto w-[150px] object-contain" /></Link><button onClick={()=>setIsCollapsed(true)} className="hidden rounded-xl p-2 hover:bg-surface-2 md:block"><ChevronRight size={20}/></button></>}
       </div>
       <nav className="flex-1 space-y-1.5 overflow-y-auto px-4 py-6">
-        {!isCollapsed&&<p className="px-4 pb-2 text-xs font-semibold text-muted-foreground">نظام حسابات SPC</p>}
+        {!isCollapsed&&<p className="px-4 pb-2 text-xs font-semibold text-muted-foreground">{tr("نظام حسابات SPC","SPC Accounts System")}</p>}
         {items.map(({href,label,icon})=><SidebarNavItem key={href} href={href} label={label} icon={icon} active={pathname===href||(href!=="/dashboard"&&pathname.startsWith(href+"/"))} isCollapsed={isCollapsed} onClick={()=>setIsMobileMenuOpen(false)} onMouseEnter={e=>handleHover(e,label)} onMouseLeave={()=>setHoveredItem(null)}/>)}
         <div className="my-4 border-t border-border"/>
-        <SidebarNavItem href="/dashboard/settings" label="الإعدادات" icon={Settings} active={pathname.startsWith("/dashboard/settings")} isCollapsed={isCollapsed} onClick={()=>setIsMobileMenuOpen(false)} onMouseEnter={e=>handleHover(e,"الإعدادات")} onMouseLeave={()=>setHoveredItem(null)}/>
+        <SidebarNavItem href="/dashboard/settings" label={tr("الإعدادات","Settings")} icon={Settings} active={pathname.startsWith("/dashboard/settings")} isCollapsed={isCollapsed} onClick={()=>setIsMobileMenuOpen(false)} onMouseEnter={e=>handleHover(e,tr("الإعدادات","Settings"))} onMouseLeave={()=>setHoveredItem(null)}/>
       </nav>
       <div className="border-t border-border bg-surface-2 p-4 space-y-2">
         <div className={cn("flex items-center rounded-2xl border border-border bg-surface p-2.5 shadow-sm",isCollapsed?"justify-center":"gap-3")}>
@@ -100,7 +102,7 @@ export default function Sidebar() {
           </div>
           {!isCollapsed&&<span className="truncate text-sm font-black">mustafa</span>}
         </div>
-        <button onClick={()=>setIsLogoutOpen(true)} onMouseEnter={e=>handleHover(e,"تسجيل الخروج")} onMouseLeave={()=>setHoveredItem(null)} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-danger hover:bg-danger-soft"><LogOut size={isCollapsed?22:18}/>{!isCollapsed&&<span>تسجيل الخروج</span>}</button>
+        <button onClick={()=>setIsLogoutOpen(true)} onMouseEnter={e=>handleHover(e,tr("تسجيل الخروج","Logout"))} onMouseLeave={()=>setHoveredItem(null)} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-danger hover:bg-danger-soft"><LogOut size={isCollapsed?22:18}/>{!isCollapsed&&<span>{tr("تسجيل الخروج","Logout")}</span>}</button>
       </div>
     </m.aside>
     <AnimatePresence>{isMobileMenuOpen&&<m.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setIsMobileMenuOpen(false)} className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden"/>}</AnimatePresence>

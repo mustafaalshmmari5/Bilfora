@@ -10,6 +10,7 @@ import LoadingState from "@/components/LoadingState";
 import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/dashboard/NotificationBell";
+import { LanguageProvider } from "@/lib/language";
 
 interface DashboardLayoutWrapperProps {
 	children: ReactNode;
@@ -217,11 +218,13 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 
 	return (
 		<SidebarProvider>
-			<div className="min-h-screen flex flex-col md:flex-row bg-background">
-				<Sidebar />
-				<NotificationBell />
-				<DashboardContent>{children}</DashboardContent>
-			</div>
+			<LanguageProvider>
+				<div className="min-h-screen flex flex-col md:flex-row bg-background">
+					<Sidebar />
+					<NotificationBell />
+					<DashboardContent>{children}</DashboardContent>
+				</div>
+			</LanguageProvider>
 		</SidebarProvider>
 	);
 }
