@@ -151,7 +151,7 @@ export default function NotificationBell() {
 
   return (
     <div className="fixed left-4 top-4 z-[80] md:left-8 md:top-6">
-      <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface/95 p-1.5 shadow-xl backdrop-blur-xl">
+      <div dir="ltr" className="flex items-center gap-2 rounded-2xl border border-border bg-surface/95 p-1.5 shadow-xl backdrop-blur-xl">
         <button
           type="button"
           onClick={() => setPanel(panel === "notifications" ? null : "notifications")}
@@ -185,7 +185,7 @@ export default function NotificationBell() {
           title={tr("English", "العربية")}
         >
           <Languages size={17} className="text-brand" />
-          <span>{lang === "ar" ? "English" : "العربية"}</span>
+          <span dir={lang === "ar" ? "ltr" : "rtl"}>{lang === "ar" ? "English" : "العربية"}</span>
         </button>
       </div>
 
