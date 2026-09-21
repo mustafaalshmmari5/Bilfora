@@ -134,7 +134,7 @@ function EntryModal({kind,companyId,currency,onClose,onSaved}:{kind:"due"|"payme
     if(!user){setError(tr("انتهت الجلسة. سجل دخول مرة ثانية.","Session expired. Please sign in again."));setSaving(false);return;}
     let result;
     if(kind==="due") result=await supabasePersistent.from("spc_receivables").insert({company_id:companyId,created_by:user.id,service_name:service,amount:Number(amount),issue_date:date,due_date:dueDate||null,reference_number:null,notes:notes||null});
-    else if(kind==="payment") result=await supabasePersistent.from("spc_payments").insert({company_id:companyId,created_by:user.id,amount:Number(amount),payment_date:date,payment_method:method,reference_number:reference||null,notes:notes||null});
+    else if(kind==="payment") result=await supabasePersistent.from("spc_payments").insert({company_id:companyId,created_by:user.id,amount:Number(amount),payment_date:date,payment_method:method,reference_number:null,notes:notes||null});
     else result=await supabasePersistent.from("spc_reminders").insert({company_id:companyId,created_by:user.id,remind_on:date,title,notes:notes||null});
     if(result.error)setError(result.error.message); else onSaved();
     setSaving(false);
