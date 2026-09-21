@@ -236,9 +236,6 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-black">مستحقات الشركات التابعة إلى SPC</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            سجّل المطلوب والمستلم بسرعة، والباقي والحالة ينحسبون تلقائياً.
-          </p>
         </div>
         <div className="mt-14 flex flex-wrap items-center gap-2 lg:mt-14">
           <CompanySwitcher />
@@ -257,7 +254,6 @@ export default function DashboardPage() {
           <div key={currency} className="rounded-3xl border border-border bg-surface p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">ملخص العملة</p>
                 <h2 className="text-lg font-black">{currency === "IQD" ? "الدينار العراقي" : "الدولار"}</h2>
               </div>
               <CircleDollarSign className="text-brand" size={22} />
@@ -279,7 +275,6 @@ export default function DashboardPage() {
           </div>
           <div>
             <h2 className="text-xl font-black">إضافة حركة سريعة</h2>
-            <p className="text-sm text-muted-foreground">مثل سطر الإكسل، بس الحسابات تصير تلقائياً.</p>
           </div>
         </div>
 
@@ -414,9 +409,6 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <h2 className="text-xl font-black">سجل الحركات</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                كل سطر يبين المطلوب، المستلم والباقي لنفس الخدمة.
-              </p>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
