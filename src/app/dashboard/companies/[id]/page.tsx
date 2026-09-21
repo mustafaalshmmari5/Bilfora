@@ -50,7 +50,7 @@ export default function CompanyAccountPage() {
             <div className="rounded-2xl bg-brand/10 p-4 text-brand"><Building2 size={28}/></div>
             <div>
               <h1 className="text-3xl font-black">{company.name}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">رقم SAP: <span className="font-bold text-foreground">{company.sap_code}</span></p>
+              <p className="mt-1 text-sm text-muted-foreground">رقم SAP: <span className="font-bold text-foreground"><LatinNumber>{company.sap_code}</LatinNumber></span></p>
               <p className="mt-1 text-sm text-muted-foreground">الخدمة: <span className="font-medium text-foreground">{company.main_service||"—"}</span></p>
             </div>
           </div>
@@ -84,12 +84,12 @@ export default function CompanyAccountPage() {
               <tbody className="divide-y divide-border">
                 {ledger.map(row=>(
                   <tr key={row.id} className="hover:bg-surface-2">
-                    <td className="p-4">{row.entry_date}</td>
+                    <td className="p-4"><LatinNumber>{row.entry_date}</LatinNumber></td>
                     <td className="p-4"><span className={"rounded-full px-3 py-1 text-xs font-bold "+(row.entry_type==="payment"?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-700")}>{row.entry_type==="payment"?"قبض":"استحقاق"}</span></td>
                     <td className="p-4 font-medium">{row.description}</td>
-                    <td className="p-4 text-muted-foreground">{row.reference_number||"—"}</td>
-                    <td className={"p-4 font-black "+(row.entry_type==="payment"?"text-emerald-600":"text-foreground")}>{row.entry_type==="payment"?"- ":"+ "}{fmt(row.amount)}</td>
-                    <td className="p-4 font-black">{fmt(row.balance_after)}</td>
+                    <td className="p-4 text-muted-foreground">{row.reference_number?<LatinNumber>{row.reference_number}</LatinNumber>:"—"}</td>
+                    <td className={"p-4 font-black "+(row.entry_type==="payment"?"text-emerald-600":"text-foreground")}><LatinNumber>{row.entry_type==="payment"?"- ":"+ "}{fmt(row.amount)}</LatinNumber></td>
+                    <td className="p-4 font-black"><LatinNumber>{fmt(row.balance_after)}</LatinNumber></td>
                   </tr>
                 ))}
               </tbody>
@@ -140,4 +140,7 @@ function EntryModal({kind,companyId,currency,onClose,onSaved}:{kind:"due"|"payme
 }
 function Input({label,value,onChange,type="text",required}:{label:string;value:string;onChange:(v:string)=>void;type?:string;required?:boolean}) {return <div><label className="mb-2 block text-sm font-medium">{label}</label><input required={required} min={type==="number"?"0.01":undefined} step={type==="number"?"0.01":undefined} type={type} value={value} onChange={e=>onChange(e.target.value)} className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 outline-none focus:border-brand"/></div>}
 function Action({onClick,icon:Icon,label,primary}:{onClick:()=>void;icon:any;label:string;primary?:boolean}) {return <button onClick={onClick} className={"inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold "+(primary?"bg-brand text-white":"border border-border bg-surface-2 hover:bg-surface-inset")}><Icon size={17}/>{label}</button>}
-function BalanceCard({label,value,success,warning}:{label:string;value:string;success?:boolean;warning?:boolean}) {return <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm"><p className="text-sm text-muted-foreground">{label}</p><p className={"mt-2 text-2xl font-black "+(success?"text-emerald-600":warning?"text-amber-600":"")}>{value}</p></div>}
+function LatinNumber({children,className=""}:{children:React.ReactNode;className?:string}) {
+  return <bdi lang="en" dir="ltr" className={className} style={{fontFamily:"Arial, Helvetica, sans-serif",fontVariantNumeric:"lining-nums tabular-nums",fontFeatureSettings:'"locl" 0'}}>{children}</bdi>;
+}
+function BalanceCard({label,value,success,warning}:{label:string;value:string;success?:boolean;warning?:boolean}) {return <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm"><p className="text-sm text-muted-foreground">{label}</p><p className={"mt-2 text-2xl font-black "+(success?"text-emerald-600":warning?"text-amber-600":"")}><LatinNumber>{value}</LatinNumber></p></div>}
