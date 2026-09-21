@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, UserRound } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
@@ -112,11 +111,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 border-t border-border pt-5 text-center">
-            <Link href="/register" className="text-sm font-medium text-brand hover:underline">
-              إنشاء أول حساب للنظام
-            </Link>
-          </div>
         </div>
       </div>
     </main>
