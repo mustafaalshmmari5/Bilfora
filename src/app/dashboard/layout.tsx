@@ -27,7 +27,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
 				isCollapsed ? "md:mr-[80px]" : "md:mr-[264px]"
 			)}
 		>
-			<div className="p-4 md:p-8 pt-20 md:pt-8 max-w-[1600px] mx-auto">
+			<div className="p-4 md:p-8 pt-24 md:pt-24 max-w-[1600px] mx-auto">
 				<m.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}

@@ -753,3 +753,12 @@ option:checked {
   background-color: var(--brand-soft);
   color: var(--brand);
 }
+
+
+/* SPC: force Latin digit glyphs everywhere, even inside Arabic text. */
+html,
+body,
+body * {
+  font-feature-settings: "locl" 0 !important;
+  font-variant-numeric: lining-nums tabular-nums;
+}

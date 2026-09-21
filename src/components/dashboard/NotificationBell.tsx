@@ -150,8 +150,8 @@ export default function NotificationBell() {
   };
 
   return (
-    <div className="fixed left-4 top-4 z-[70] md:left-8 md:top-6">
-      <div className="flex items-center gap-2">
+    <div className="fixed left-4 top-4 z-[80] md:left-8 md:top-6">
+      <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface/95 p-1.5 shadow-xl backdrop-blur-xl">
         <button
           type="button"
           onClick={() => setPanel(panel === "notifications" ? null : "notifications")}
@@ -180,12 +180,12 @@ export default function NotificationBell() {
         <button
           type="button"
           onClick={toggleLanguage}
-          className="flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-2xl border border-border bg-surface px-3 text-xs font-black text-foreground shadow-lg transition hover:-translate-y-0.5 hover:bg-surface-2"
+          className="flex h-11 min-w-[92px] items-center justify-center gap-2 rounded-xl border border-brand/30 bg-brand-soft px-3 text-xs font-black text-brand transition hover:-translate-y-0.5 hover:bg-brand-soft/80"
           aria-label={tr("التحويل إلى الإنجليزية", "Switch to Arabic")}
           title={tr("English", "العربية")}
         >
           <Languages size={17} className="text-brand" />
-          <span>{lang === "ar" ? "EN" : "ع"}</span>
+          <span>{lang === "ar" ? "English" : "العربية"}</span>
         </button>
       </div>
 

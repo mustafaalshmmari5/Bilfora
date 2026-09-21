@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { MotionProvider } from "@/components/providers/MotionProvider";
 import { Analytics } from "@vercel/analytics/react";
+import LatinDigitsGuard from "@/components/LatinDigitsGuard";
 
 export const metadata: Metadata = {
   title: "نظام حسابات SPC",
@@ -31,6 +32,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
+        <LatinDigitsGuard />
         <QueryProvider>
           <MotionProvider>
             {children}

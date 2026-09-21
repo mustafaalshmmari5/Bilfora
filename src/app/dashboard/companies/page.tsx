@@ -122,5 +122,5 @@ function Field({label,value,onChange,required}:{label:string;value:string;onChan
   return <div><label className="mb-2 block text-sm font-medium">{label}</label><input required={required} value={value} onChange={e=>onChange(e.target.value)} className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 outline-none focus:border-brand"/></div>;
 }
 function Mini({label,value,currency,bold}:{label:string;value:number;currency:string;bold?:boolean}) {
-  return <div><p className="text-[11px] text-muted-foreground">{label}</p><p className={"mt-1 text-sm "+(bold?"font-black text-brand":"font-bold")}>{new Intl.NumberFormat("ar-IQ",{maximumFractionDigits:currency==="IQD"?0:2}).format(value)} <span className="text-[9px]">{currency}</span></p></div>;
+  return <div><p className="text-[11px] text-muted-foreground">{label}</p><p className={"mt-1 text-sm "+(bold?"font-black text-brand":"font-bold")}>{new Intl.NumberFormat("en-US",{maximumFractionDigits:currency==="IQD"?0:2}).format(value)} <span className="text-[9px]">{currency}</span></p></div>;
 }
