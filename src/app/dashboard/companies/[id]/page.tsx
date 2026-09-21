@@ -43,8 +43,8 @@ export default function CompanyAccountPage() {
   const fmt=(v:number|string)=>new Intl.NumberFormat("en-US",{maximumFractionDigits:company.currency==="IQD"?0:2}).format(Number(v||0))+" "+company.currency;
 
   return (
-    <div className="space-y-6 pb-10">
-      <div className="flex flex-wrap items-center justify-between gap-3"><Link href="/dashboard/companies" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand"><ArrowRight size={16}/> {tr("رجوع للشركات", "Back to companies")}</Link><CompanySwitcher currentCompanyId={id} /></div>
+    <div className="space-y-6 pb-10 pt-14 md:pt-12">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><Link href="/dashboard/companies" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand"><ArrowRight size={16}/> {tr("رجوع للشركات", "Back to companies")}</Link><div className="w-full sm:w-auto"><CompanySwitcher currentCompanyId={id} /></div></div>
 
       <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
