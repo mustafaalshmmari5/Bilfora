@@ -124,7 +124,7 @@ export default function SettingsPage() {
           <div className="rounded-2xl bg-brand-soft p-3 text-brand"><ReceiptText size={21} /></div>
           <div>
             <h2 className="font-black">{tr("الفواتير","Invoices")}</h2>
-            <p className="text-sm text-muted-foreground">{tr("إعدادات ترقيم الفواتير، العملة والملاحظات.","Invoice numbering, currency and notes settings.")}</p>
+            <p className="text-sm text-muted-foreground">{tr("كل الفواتير المرفقة ويا حركات المستحقات بمكان واحد.","All invoices attached to receivable movements in one place.")}</p>
           </div>
         </div>
         <ArrowLeft size={19} className="text-muted-foreground transition group-hover:-translate-x-1 group-hover:text-brand" />

@@ -1,34 +1,35 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, FileText, Hash, Save, WalletCards } from "lucide-react";
+import { ArrowRight, Building2, CalendarDays, ExternalLink, FileText, Search } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
 import { useLanguage } from "@/lib/language";
+import { toast } from "sonner";
 
-type InvoiceSettings = {
-  user_id: string;
+type InvoiceRow = {
+  id: string;
+  company_id: string;
   company_name: string;
-  invoice_prefix: string;
-  default_currency: "IQD" | "USD";
-  footer_note: string | null;
-  payment_notes: string | null;
+  sap_code: string;
+  service_name: string;
+  issue_date: string;
+  due_amount: number | string;
+  currency: "IQD" | "USD";
+  invoice_file_path: string;
+  invoice_file_name: string | null;
 };
 
-const defaults = {
-  company_name: "SPC",
-  invoice_prefix: "SPC-INV-",
-  default_currency: "IQD" as "IQD" | "USD",
-  footer_note: "",
-  payment_notes: "",
-};
+const money = (value: number | string, currency: string) =>
+  new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: currency === "IQD" ? 0 : 2,
+  }).format(Number(value || 0)) + " " + currency;
 
-export default function InvoiceSettingsPage() {
+export default function InvoiceListPage() {
   const { tr } = useLanguage();
-  const [form, setForm] = useState(defaults);
+  const [rows, setRows] = useState<InvoiceRow[]>([]);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -36,30 +37,17 @@ export default function InvoiceSettingsPage() {
       setLoading(true);
       setError("");
 
-      const { data: auth, error: authError } = await supabasePersistent.auth.getUser();
-      if (authError || !auth.user) {
-        setError(tr("انتهت الجلسة. سجل دخول مرة ثانية.","Session expired. Please sign in again."));
-        setLoading(false);
-        return;
-      }
-
       const { data, error: loadError } = await supabasePersistent
-        .from("spc_invoice_settings")
-        .select("user_id,company_name,invoice_prefix,default_currency,footer_note,payment_notes")
-        .eq("user_id", auth.user.id)
-        .maybeSingle();
+        .from("spc_account_rows")
+        .select("id,company_id,company_name,sap_code,service_name,issue_date,due_amount,currency,invoice_file_path,invoice_file_name")
+        .not("invoice_file_path", "is", null)
+        .order("issue_date", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (loadError) {
         setError(loadError.message);
-      } else if (data) {
-        const row = data as InvoiceSettings;
-        setForm({
-          company_name: row.company_name || "SPC",
-          invoice_prefix: row.invoice_prefix || "SPC-INV-",
-          default_currency: row.default_currency || "IQD",
-          footer_note: row.footer_note || "",
-          payment_notes: row.payment_notes || "",
-        });
+      } else {
+        setRows((data ?? []) as InvoiceRow[]);
       }
 
       setLoading(false);
@@ -68,131 +56,148 @@ export default function InvoiceSettingsPage() {
     void load();
   }, []);
 
-  const save = async (event: FormEvent) => {
-    event.preventDefault();
-    setSaving(true);
-    setSaved(false);
-    setError("");
+  const filtered = useMemo(() => {
+    const text = query.trim().toLowerCase();
+    if (!text) return rows;
 
-    const { data: auth, error: authError } = await supabasePersistent.auth.getUser();
-    if (authError || !auth.user) {
-      setError(tr("انتهت الجلسة. سجل دخول مرة ثانية.","Session expired. Please sign in again."));
-      setSaving(false);
+    return rows.filter((row) =>
+      [
+        row.invoice_file_name ?? "",
+        row.company_name,
+        row.sap_code,
+        row.service_name,
+        row.issue_date,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(text)
+    );
+  }, [rows, query]);
+
+  const openInvoice = async (row: InvoiceRow) => {
+    const { data, error: signedError } = await supabasePersistent.storage
+      .from("spc-invoices")
+      .createSignedUrl(row.invoice_file_path, 300);
+
+    if (signedError || !data?.signedUrl) {
+      toast.error(tr("تعذر فتح الفاتورة.","Unable to open invoice."));
       return;
     }
 
-    const { error: saveError } = await supabasePersistent
-      .from("spc_invoice_settings")
-      .upsert(
-        {
-          user_id: auth.user.id,
-          company_name: form.company_name.trim() || "SPC",
-          invoice_prefix: form.invoice_prefix.trim() || "SPC-INV-",
-          default_currency: form.default_currency,
-          footer_note: form.footer_note.trim() || null,
-          payment_notes: form.payment_notes.trim() || null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id" }
-      );
-
-    if (saveError) setError(saveError.message);
-    else setSaved(true);
-
-    setSaving(false);
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
-  if (loading) {
-    return <div className="p-10 text-center text-muted-foreground">{tr("جاري تحميل إعدادات الفواتير...","Loading invoice settings...")}</div>;
-  }
-
   return (
-    <div className="mx-auto max-w-4xl space-y-6 pb-10">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto max-w-6xl space-y-6 pb-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-black">{tr("إعدادات الفواتير","Invoice Settings")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{tr("إعدادات خاصة بفواتير SPC.","SPC invoice settings.")}</p>
+          <h1 className="text-3xl font-black">{tr("قائمة الفواتير","Invoice List")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {tr("كل فاتورة مرفقة ويا حركة تظهر هنا وتكدر تبحث عنها وتفتحها.","Every invoice attached to a movement appears here for quick search and access.")}
+          </p>
         </div>
-        <Link href="/dashboard/settings" className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm font-bold hover:bg-surface-2">
+
+        <Link
+          href="/dashboard/settings"
+          className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm font-bold hover:bg-surface-2"
+        >
           <ArrowRight size={17} />
-          رجوع للإعدادات
+          {tr("رجوع للإعدادات","Back to Settings")}
         </Link>
       </div>
 
-      {error && <div className="rounded-2xl border border-danger-border bg-danger-soft p-4 text-sm text-danger">{error}</div>}
-      {saved && <div className="rounded-2xl border border-success-border bg-success-soft p-4 text-sm text-success">{tr("تم حفظ إعدادات الفواتير ✓","Invoice settings saved ✓")}</div>}
-
-      <form onSubmit={save} className="space-y-6">
-        <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
-          <div className="mb-5 flex items-center gap-2">
-            <FileText className="text-brand" size={20} />
-            <h2 className="text-lg font-black">{tr("بيانات الفاتورة","Invoice Details")}</h2>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label={tr("اسم الشركة","Company Name")} value={form.company_name} onChange={(value) => setForm({...form,company_name:value})} />
-            <Field label={tr("بادئة رقم الفاتورة","Invoice Number Prefix")} value={form.invoice_prefix} onChange={(value) => setForm({...form,invoice_prefix:value})} dir="ltr" />
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
-          <div className="mb-5 flex items-center gap-2">
-            <WalletCards className="text-brand" size={20} />
-            <h2 className="text-lg font-black">{tr("العملة والملاحظات","Currency & Notes")}</h2>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium">{tr("العملة الافتراضية","Default Currency")}</label>
-              <select
-                value={form.default_currency}
-                onChange={(event) => setForm({...form,default_currency:event.target.value as "IQD" | "USD"})}
-                className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 outline-none focus:border-brand"
-              >
-                <option value="IQD">{tr("IQD - دينار عراقي","IQD - Iraqi Dinar")}</option>
-                <option value="USD">{tr("USD - دولار أمريكي","USD - US Dollar")}</option>
-              </select>
-            </div>
-            <Field label={tr("ملاحظة أسفل الفاتورة","Invoice Footer Note")} value={form.footer_note} onChange={(value) => setForm({...form,footer_note:value})} />
-          </div>
-
-          <div className="mt-4">
-            <label className="mb-2 block text-sm font-medium">{tr("ملاحظات الدفع","Payment Notes")}</label>
-            <textarea
-              value={form.payment_notes}
-              onChange={(event) => setForm({...form,payment_notes:event.target.value})}
-              rows={4}
-              className="w-full resize-none rounded-xl border border-border bg-surface-2 px-4 py-3 outline-none focus:border-brand"
-            />
-          </div>
-        </section>
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3.5 font-bold text-white shadow-lg shadow-brand/20 transition hover:bg-brand-hover disabled:opacity-60"
-        >
-          <Save size={18} />
-          {saving ? tr("جاري الحفظ...","Saving...") : tr("حفظ إعدادات الفواتير","Save Invoice Settings")}
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function Field({label,value,onChange,dir}:{label:string;value:string;onChange:(value:string)=>void;dir?:"ltr"|"rtl"}) {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-medium">{label}</label>
-      <div className="relative">
-        {label.includes("بادئة") && <Hash size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />}
-        <input
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          dir={dir}
-          className={"w-full rounded-xl border border-border bg-surface-2 px-4 py-3 outline-none focus:border-brand " + (label.includes("بادئة") ? "pr-10" : "")}
-        />
+      <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm">
+        <div className="relative">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={tr("ابحث باسم الفاتورة، الشركة، الخدمة أو SAP...","Search invoice name, company, service or SAP...")}
+            className="input pr-11"
+          />
+        </div>
       </div>
+
+      {error && (
+        <div className="rounded-2xl border border-danger-border bg-danger-soft p-4 text-sm text-danger">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="rounded-3xl border border-border bg-surface p-12 text-center text-muted-foreground shadow-sm">
+          {tr("جاري تحميل الفواتير...","Loading invoices...")}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-3xl border border-border bg-surface p-12 text-center shadow-sm">
+          <FileText className="mx-auto mb-3 text-muted-foreground" size={34} />
+          <p className="font-black">
+            {query ? tr("ماكو فاتورة مطابقة للبحث.","No invoice matches your search.") : tr("ماكو فواتير مرفقة حالياً.","No attached invoices yet.")}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {tr("أي فاتورة تضيفها ويا الحركة راح تظهر هنا تلقائياً.","Any invoice attached to a movement will appear here automatically.")}
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-sm">
+              <thead className="bg-surface-2 text-muted-foreground">
+                <tr>
+                  <th className="p-4 text-right">{tr("اسم الفاتورة","Invoice Name")}</th>
+                  <th className="p-4 text-right">{tr("الشركة","Company")}</th>
+                  <th className="p-4 text-right">SAP</th>
+                  <th className="p-4 text-right">{tr("الخدمة / البيان","Service / Description")}</th>
+                  <th className="p-4 text-right">{tr("التاريخ","Date")}</th>
+                  <th className="p-4 text-right">{tr("المبلغ","Amount")}</th>
+                  <th className="p-4 text-right">{tr("فتح","Open")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((row) => (
+                  <tr key={row.id} className="transition hover:bg-surface-2">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-brand-soft p-2 text-brand">
+                          <FileText size={17} />
+                        </div>
+                        <span className="max-w-[280px] truncate font-bold" title={row.invoice_file_name ?? undefined}>
+                          {row.invoice_file_name || tr("فاتورة","Invoice")}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <Building2 size={16} className="text-muted-foreground" />
+                        <span className="font-medium">{row.company_name}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 font-mono" dir="ltr">{row.sap_code}</td>
+                    <td className="p-4">{row.service_name}</td>
+                    <td className="p-4">
+                      <span className="inline-flex items-center gap-2">
+                        <CalendarDays size={15} className="text-muted-foreground" />
+                        <span dir="ltr">{row.issue_date}</span>
+                      </span>
+                    </td>
+                    <td className="p-4 font-black" dir="ltr">{money(row.due_amount, row.currency)}</td>
+                    <td className="p-4">
+                      <button
+                        type="button"
+                        onClick={() => void openInvoice(row)}
+                        className="inline-flex items-center gap-2 rounded-xl bg-brand px-3 py-2 text-xs font-bold text-white hover:bg-brand-hover"
+                      >
+                        <ExternalLink size={15} />
+                        {tr("عرض","View")}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
