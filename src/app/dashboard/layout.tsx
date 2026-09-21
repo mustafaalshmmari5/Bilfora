@@ -23,8 +23,8 @@ function DashboardContent({ children }: { children: ReactNode }) {
 	return (
 		<main
 			className={cn(
-				"flex-1 min-h-screen bg-background transition-[margin] duration-300 w-full max-w-full overflow-x-hidden",
-				isCollapsed ? "md:mr-[80px]" : "md:mr-[264px]"
+				"min-h-screen w-full bg-background transition-[margin,width] duration-300 max-w-full overflow-x-hidden md:flex-none",
+				isCollapsed ? "md:mr-[80px] md:w-[calc(100%-80px)]" : "md:mr-[264px] md:w-[calc(100%-264px)]"
 			)}
 		>
 			<div className="p-4 md:p-8 pt-24 md:pt-24 max-w-[1600px] mx-auto">
