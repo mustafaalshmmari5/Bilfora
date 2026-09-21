@@ -29,6 +29,11 @@ type NotificationRow = {
   created_at: string;
 };
 
+const toLatinDigits = (value: string | number) =>
+  String(value)
+    .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+
 const kindIcon = {
   receivable_created: ReceiptText,
   payment_received: WalletCards,
@@ -154,7 +159,7 @@ export default function NotificationBell() {
           <Bell size={19} />
           {unread > 0 && (
             <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-black text-white">
-              {unread > 99 ? "99+" : unread}
+              {unread > 99 ? "99+" : toLatinDigits(unread)}
             </span>
           )}
         </button>
@@ -184,7 +189,7 @@ export default function NotificationBell() {
                 <div>
                   <h2 className="font-black">الإشعارات</h2>
                   <p className="text-xs text-muted-foreground">
-                    {unread ? unread + " غير مقروء" : "كلشي مقروء"}
+                    {unread ? toLatinDigits(unread) + " غير مقروء" : "كلشي مقروء"}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -248,20 +253,21 @@ export default function NotificationBell() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-black">{item.title}</p>
+                            <p className="text-sm font-black">{toLatinDigits(item.title)}</p>
                             {!item.read_at && (
                               <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />
                             )}
                           </div>
                           {item.body && (
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                              {item.body}
+                              {toLatinDigits(item.body)}
                             </p>
                           )}
                           <p className="mt-2 text-[10px] text-subtle">
-                            {new Date(item.created_at).toLocaleString("ar-IQ", {
+                            {new Date(item.created_at).toLocaleString("en-GB", {
                               dateStyle: "short",
                               timeStyle: "short",
+                              hour12: false,
                             })}
                           </p>
                         </div>
