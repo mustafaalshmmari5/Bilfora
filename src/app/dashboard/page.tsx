@@ -333,7 +333,6 @@ export default function DashboardPage() {
             <input
               value={form.reference_number}
               onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
-              placeholder="اختياري"
               className="input"
             />
           </FieldWrap>
@@ -343,7 +342,6 @@ export default function DashboardPage() {
               required
               value={form.service_name}
               onChange={(e) => setForm({ ...form, service_name: e.target.value })}
-              placeholder="مثلاً: SAP Support 08-2026"
               className="input"
             />
           </FieldWrap>
@@ -388,7 +386,6 @@ export default function DashboardPage() {
             <input
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="أي تفاصيل إضافية..."
               className="input"
             />
           </FieldWrap>
