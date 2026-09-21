@@ -38,7 +38,7 @@ export default function CompanyAccountPage() {
   if (loading) return <div className="p-10 text-center text-muted-foreground">جاري تحميل الحساب...</div>;
   if (!company) return <div className="p-10 text-center">الشركة غير موجودة.</div>;
 
-  const fmt=(v:number|string)=>new Intl.NumberFormat("ar-IQ",{maximumFractionDigits:company.currency==="IQD"?0:2}).format(Number(v||0))+" "+company.currency;
+  const fmt=(v:number|string)=>new Intl.NumberFormat("en-US",{maximumFractionDigits:company.currency==="IQD"?0:2}).format(Number(v||0))+" "+company.currency;
 
   return (
     <div className="space-y-6 pb-10">
