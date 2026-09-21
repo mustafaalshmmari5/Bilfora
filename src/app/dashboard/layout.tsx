@@ -10,7 +10,7 @@ import LoadingState from "@/components/LoadingState";
 import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/dashboard/NotificationBell";
-import { LanguageProvider, useLanguage } from "@/lib/language";
+import { LanguageProvider } from "@/lib/language";
 
 interface DashboardLayoutWrapperProps {
 	children: ReactNode;
@@ -19,13 +19,12 @@ interface DashboardLayoutWrapperProps {
 // 🧩 Main dashboard content (responsive, RTL-aware)
 function DashboardContent({ children }: { children: ReactNode }) {
 	const { isCollapsed } = useSidebar();
-	const { lang } = useLanguage();
 
 	return (
 		<main
 			className={cn(
 				"flex-1 min-h-screen bg-background transition-[margin] duration-300 w-full max-w-full overflow-x-hidden",
-				lang === "ar" ? (isCollapsed ? "md:mr-[80px]" : "md:mr-[264px]") : (isCollapsed ? "md:ml-[80px]" : "md:ml-[264px]")
+				isCollapsed ? "md:mr-[80px]" : "md:mr-[264px]"
 			)}
 		>
 			<div className="p-4 md:p-8 pt-24 md:pt-24 max-w-[1600px] mx-auto">
