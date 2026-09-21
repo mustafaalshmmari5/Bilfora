@@ -108,7 +108,6 @@ export default function DashboardPage() {
     posting_date: today(),
     due_date: "",
     service_name: "",
-    reference_number: "",
     due_amount: "",
     received_amount: "",
     notes: "",
@@ -183,7 +182,6 @@ export default function DashboardPage() {
           row.company_name,
           row.sap_code,
           row.service_name,
-          row.reference_number ?? "",
           row.notes ?? "",
         ]
           .join(" ")
@@ -257,7 +255,7 @@ export default function DashboardPage() {
       p_received_amount: received,
       p_posting_date: form.posting_date,
       p_due_date: form.due_date || null,
-      p_reference_number: form.reference_number.trim() || null,
+      p_reference_number: null,
       p_notes: form.notes.trim() || null,
     });
 
@@ -317,7 +315,6 @@ export default function DashboardPage() {
         posting_date: today(),
         due_date: "",
         service_name: "",
-        reference_number: "",
         due_amount: "",
         received_amount: "",
         notes: "",
@@ -429,15 +426,7 @@ export default function DashboardPage() {
             />
           </FieldWrap>
 
-          <FieldWrap label={tr("المرجع","Reference")} className="lg:col-span-3">
-            <input
-              value={form.reference_number}
-              onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
-              className="input"
-            />
-          </FieldWrap>
-
-          <FieldWrap label={tr("الخدمة / البيان","Service / Description")} className="lg:col-span-6">
+          <FieldWrap label={tr("الخدمة / البيان","Service / Description")} className="lg:col-span-9">
             <input
               required
               value={form.service_name}
@@ -701,7 +690,6 @@ function PaymentModal({
   const { tr } = useLanguage();
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(today());
-  const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -737,7 +725,7 @@ function PaymentModal({
       amount: value,
       payment_date: date,
       payment_method: "استلام",
-      reference_number: reference.trim() || null,
+      reference_number: null,
       notes: notes.trim() || null,
     });
 
@@ -796,9 +784,6 @@ function PaymentModal({
           </FieldWrap>
           <FieldWrap label={tr("التاريخ","Date")}>
             <input required type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input" />
-          </FieldWrap>
-          <FieldWrap label={tr("رقم المرجع","Reference Number")}>
-            <input value={reference} onChange={(e) => setReference(e.target.value)} className="input" placeholder={tr("اختياري","Optional")} />
           </FieldWrap>
           <FieldWrap label={tr("ملاحظات","Notes")}>
             <input value={notes} onChange={(e) => setNotes(e.target.value)} className="input" placeholder={tr("اختياري","Optional")} />

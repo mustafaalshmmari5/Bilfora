@@ -91,7 +91,7 @@ export default function CompanyAccountPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[880px] text-sm">
               <thead className="bg-surface-2 text-muted-foreground">
-                <tr><th className="p-4 text-right">{tr("التاريخ","Date")}</th><th className="p-4 text-right">{tr("نوع الحركة","Type")}</th><th className="p-4 text-right">{tr("البيان","Description")}</th><th className="p-4 text-right">{tr("المرجع","Reference")}</th><th className="p-4 text-right">{tr("المبلغ","Amount")}</th><th className="p-4 text-right">{tr("الرصيد بعد الحركة","Balance after")}</th><th className="p-4 text-right">{tr("الفاتورة","Invoice")}</th></tr>
+                <tr><th className="p-4 text-right">{tr("التاريخ","Date")}</th><th className="p-4 text-right">{tr("نوع الحركة","Type")}</th><th className="p-4 text-right">{tr("البيان","Description")}</th><th className="p-4 text-right">{tr("المبلغ","Amount")}</th><th className="p-4 text-right">{tr("الرصيد بعد الحركة","Balance after")}</th><th className="p-4 text-right">{tr("الفاتورة","Invoice")}</th></tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {ledger.map(row=>(
@@ -99,7 +99,6 @@ export default function CompanyAccountPage() {
                     <td className="p-4"><LatinNumber>{row.entry_date}</LatinNumber></td>
                     <td className="p-4"><span className={"rounded-full px-3 py-1 text-xs font-bold "+(row.entry_type==="payment"?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-700")}>{row.entry_type==="payment"?tr("قبض","Payment"):tr("استحقاق","Receivable")}</span></td>
                     <td className="p-4 font-medium">{row.description}</td>
-                    <td className="p-4 text-muted-foreground">{row.reference_number?<LatinNumber>{row.reference_number}</LatinNumber>:"—"}</td>
                     <td className={"p-4 font-black "+(row.entry_type==="payment"?"text-emerald-600":"text-foreground")}><LatinNumber>{row.entry_type==="payment"?"- ":"+ "}{fmt(row.amount)}</LatinNumber></td>
                     <td className="p-4 font-black"><LatinNumber>{fmt(row.balance_after)}</LatinNumber></td>
                     <td className="p-4">
@@ -127,14 +126,14 @@ function EntryModal({kind,companyId,currency,onClose,onSaved}:{kind:"due"|"payme
   const [saving,setSaving]=useState(false); const [error,setError]=useState("");
   const today=new Date().toISOString().slice(0,10);
   const [amount,setAmount]=useState(""); const [service,setService]=useState(""); const [date,setDate]=useState(today); const [dueDate,setDueDate]=useState("");
-  const [reference,setReference]=useState(""); const [notes,setNotes]=useState(""); const [method,setMethod]=useState(tr("تحويل","Transfer")); const [title,setTitle]=useState(tr("متابعة تحصيل","Collection follow-up"));
+  const [notes,setNotes]=useState(""); const [method,setMethod]=useState(tr("تحويل","Transfer")); const [title,setTitle]=useState(tr("متابعة تحصيل","Collection follow-up"));
 
   const submit=async(e:FormEvent)=>{
     e.preventDefault(); setSaving(true);setError("");
     const {data}=await supabasePersistent.auth.getUser(); const user=data.user;
     if(!user){setError(tr("انتهت الجلسة. سجل دخول مرة ثانية.","Session expired. Please sign in again."));setSaving(false);return;}
     let result;
-    if(kind==="due") result=await supabasePersistent.from("spc_receivables").insert({company_id:companyId,created_by:user.id,service_name:service,amount:Number(amount),issue_date:date,due_date:dueDate||null,reference_number:reference||null,notes:notes||null});
+    if(kind==="due") result=await supabasePersistent.from("spc_receivables").insert({company_id:companyId,created_by:user.id,service_name:service,amount:Number(amount),issue_date:date,due_date:dueDate||null,reference_number:null,notes:notes||null});
     else if(kind==="payment") result=await supabasePersistent.from("spc_payments").insert({company_id:companyId,created_by:user.id,amount:Number(amount),payment_date:date,payment_method:method,reference_number:reference||null,notes:notes||null});
     else result=await supabasePersistent.from("spc_reminders").insert({company_id:companyId,created_by:user.id,remind_on:date,title,notes:notes||null});
     if(result.error)setError(result.error.message); else onSaved();
@@ -150,7 +149,6 @@ function EntryModal({kind,companyId,currency,onClose,onSaved}:{kind:"due"|"payme
         {kind==="payment"&&<Input label={tr("طريقة القبض","Payment method")} value={method} onChange={setMethod}/>}
         {kind==="reminder"&&<Input label={tr("عنوان التذكير","Reminder title")} value={title} onChange={setTitle}/>}
         <Input label={kind==="reminder"?tr("تاريخ التذكير","Reminder date"):tr("تاريخ الحركة","Movement date")} value={date} onChange={setDate} type="date" required/>\n        {kind==="due"&&<Input label={tr("تاريخ الاستحقاق","Due date")} value={dueDate} onChange={setDueDate} type="date"/>}
-        {kind!=="reminder"&&<Input label={tr("رقم المرجع (اختياري)","Reference number (optional)")} value={reference} onChange={setReference}/>}
         <Input label={tr("ملاحظات","Notes")} value={notes} onChange={setNotes}/>
       </div>
       {error&&<p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-600">{error}</p>}
