@@ -94,11 +94,12 @@ export default function Sidebar() {
         <SidebarNavItem href="/dashboard/settings" label="الإعدادات" icon={Settings} active={pathname.startsWith("/dashboard/settings")} isCollapsed={isCollapsed} onClick={()=>setIsMobileMenuOpen(false)} onMouseEnter={e=>handleHover(e,"الإعدادات")} onMouseLeave={()=>setHoveredItem(null)}/>
       </nav>
       <div className="border-t border-border bg-surface-2 p-4 space-y-2">
-        {!isCollapsed && (
-          <div className="rounded-2xl border border-border bg-surface px-4 py-3 text-center text-sm font-black shadow-sm">
-            mustafa
+        <div className={cn("flex items-center rounded-2xl border border-border bg-surface p-2.5 shadow-sm",isCollapsed?"justify-center":"gap-3")}>
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-base font-black text-white ring-2 ring-brand-soft">
+            M
           </div>
-        )}
+          {!isCollapsed&&<span className="truncate text-sm font-black">mustafa</span>}
+        </div>
         <button onClick={()=>setIsLogoutOpen(true)} onMouseEnter={e=>handleHover(e,"تسجيل الخروج")} onMouseLeave={()=>setHoveredItem(null)} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-danger hover:bg-danger-soft"><LogOut size={isCollapsed?22:18}/>{!isCollapsed&&<span>تسجيل الخروج</span>}</button>
       </div>
     </m.aside>
