@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Building2, Search, UserRound, X } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
+import { useLanguage } from "@/lib/language";
 
 type CompanyOption = {
   id: string;
@@ -17,6 +18,7 @@ export default function CompanySwitcher({
 }: {
   currentCompanyId?: string;
 }) {
+  const { tr } = useLanguage();
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -69,7 +71,7 @@ export default function CompanySwitcher({
           className="inline-flex items-center gap-2 rounded-2xl border border-brand/30 bg-brand-soft px-4 py-2.5 text-sm font-bold text-brand shadow-sm transition hover:border-brand hover:bg-brand-soft-2"
         >
           <Search size={17} />
-          بحث عن جهة
+          {tr("بحث عن جهة","Search Entity")}
         </button>
 
         {current && (
@@ -92,7 +94,7 @@ export default function CompanySwitcher({
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="اسم الشركة/الشخص أو رقم SAP..."
+                placeholder={tr("اسم الشركة/الشخص أو رقم SAP...","Company/person name or SAP code...")}
                 className="input pr-9 pl-10"
               />
               {query && (
@@ -100,7 +102,7 @@ export default function CompanySwitcher({
                   type="button"
                   onClick={() => setQuery("")}
                   className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground hover:bg-surface-2"
-                  aria-label="مسح البحث"
+                  aria-label={tr("مسح البحث","Clear Search")}
                 >
                   <X size={14} />
                 </button>
@@ -111,7 +113,7 @@ export default function CompanySwitcher({
           <div className="max-h-[360px] overflow-y-auto p-2">
             {filtered.length === 0 ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
-                ماكو جهة بهذا الاسم أو رقم SAP.
+                {tr("ماكو جهة بهذا الاسم أو رقم SAP.","No entity found with this name or SAP code.")}
               </div>
             ) : (
               <>
@@ -122,7 +124,7 @@ export default function CompanySwitcher({
                   return (
                     <div key={group} className="mb-2 last:mb-0">
                       <div className="px-3 py-2 text-[11px] font-black text-muted-foreground">
-                        {group === "company" ? "الشركات" : "الأشخاص"}
+                        {group === "company" ? tr("الشركات","Companies") : tr("الأشخاص","People")}
                       </div>
                       {groupItems.map((company) => {
                         const Icon = company.party_type === "person" ? UserRound : Building2;
