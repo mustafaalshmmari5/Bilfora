@@ -18,6 +18,7 @@ import {
 import { supabasePersistent } from "@/lib/supabase-clients";
 import CompanySwitcher from "@/components/dashboard/CompanySwitcher";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/language";
 
 type Company = {
   id: string;
@@ -62,6 +63,18 @@ const STATUS_LABELS: Record<AccountRow["payment_status"], string> = {
   unpaid: "غير مسدد",
   overdue: "متأخر",
 };
+const ENTRY_LABELS_EN: Record<AccountRow["entry_type"], string> = {
+  order: "Order",
+  invoice: "Receivable",
+  outgoing: "Expense / Service",
+  other: "Other",
+};
+const STATUS_LABELS_EN: Record<AccountRow["payment_status"], string> = {
+  paid: "Paid",
+  partial: "Partial",
+  unpaid: "Unpaid",
+  overdue: "Overdue",
+};
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -71,6 +84,7 @@ const money = (value: number | string, currency: string) =>
   }).format(Number(value || 0)) + " " + currency;
 
 export default function DashboardPage() {
+  const { tr } = useLanguage();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [rows, setRows] = useState<AccountRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,7 +199,7 @@ export default function DashboardPage() {
     setError("");
 
     if (!form.company_id) {
-      setError("اختار الشركة أولاً.");
+      setError(tr("اختار الشركة أولاً.","Select a company first."));
       return;
     }
 
@@ -193,12 +207,12 @@ export default function DashboardPage() {
     const received = Number(form.received_amount || 0);
 
     if (!due || due <= 0) {
-      setError("اكتب المبلغ المطلوب بشكل صحيح.");
+      setError(tr("اكتب المبلغ المطلوب بشكل صحيح.","Enter the due amount correctly."));
       return;
     }
 
     if (received < 0 || received > due) {
-      setError("المبلغ المستلم لازم يكون بين صفر والمبلغ المطلوب.");
+      setError(tr("المبلغ المستلم لازم يكون بين صفر والمبلغ المطلوب.","Received amount must be between zero and the due amount."));
       return;
     }
 
@@ -219,12 +233,12 @@ export default function DashboardPage() {
     if (rpcError) {
       setError(rpcError.message);
     } else {
-      const companyName = selectedCompany?.name || "الشركة";
+      const companyName = selectedCompany?.name || tr("الشركة","Company");
       const currency = selectedCompany?.currency || "IQD";
       const remaining = Math.max(due - received, 0);
 
-      toast.success("تمت إضافة الحركة بنجاح ✓", {
-        description: companyName + " • المطلوب " + money(due, currency) + " • الباقي " + money(remaining, currency),
+      toast.success(tr("تمت إضافة الحركة بنجاح ✓","Movement added successfully ✓"), {
+        description: companyName + " • " + tr("المطلوب","Due") + " " + money(due, currency) + " • " + tr("الباقي","Remaining") + " " + money(remaining, currency),
         duration: 4500,
       });
       window.dispatchEvent(new Event("spc-movement-created"));
@@ -249,7 +263,7 @@ export default function DashboardPage() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-black">مستحقات الشركات التابعة إلى SPC</h1>
+          <h1 className="text-3xl font-black">{tr("مستحقات الشركات التابعة إلى SPC","SPC Company Receivables")}</h1>
         </div>
         <div className="mt-14 flex flex-wrap items-center gap-2 lg:mt-14">
           <CompanySwitcher />
@@ -258,7 +272,7 @@ export default function DashboardPage() {
             className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm font-bold hover:bg-surface-2"
           >
             <Building2 size={17} />
-            شركة جديدة
+            {tr("شركة جديدة","New Company")}
           </Link>
         </div>
       </div>
@@ -268,15 +282,15 @@ export default function DashboardPage() {
           <div key={currency} className="rounded-3xl border border-border bg-surface p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-black">{currency === "IQD" ? "الدينار العراقي" : "الدولار"}</h2>
+                <h2 className="text-lg font-black">{currency === "IQD" ? tr("الدينار العراقي","Iraqi Dinar") : tr("الدولار","US Dollar")}</h2>
               </div>
               <CircleDollarSign className="text-brand" size={22} />
             </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <Summary label="المطلوب" value={money(totals[currency].due, currency)} icon={WalletCards} />
-              <Summary label="المستلم" value={money(totals[currency].received, currency)} icon={BanknoteArrowDown} success />
-              <Summary label="الباقي" value={money(totals[currency].remaining, currency)} icon={CircleDollarSign} />
-              <Summary label="المتأخر" value={money(totals[currency].overdue, currency)} icon={AlertTriangle} danger />
+              <Summary label={tr("المطلوب","Due")} value={money(totals[currency].due, currency)} icon={WalletCards} />
+              <Summary label={tr("المستلم","Received")} value={money(totals[currency].received, currency)} icon={BanknoteArrowDown} success />
+              <Summary label={tr("الباقي","Remaining")} value={money(totals[currency].remaining, currency)} icon={CircleDollarSign} />
+              <Summary label={tr("المتأخر","Overdue")} value={money(totals[currency].overdue, currency)} icon={AlertTriangle} danger />
             </div>
           </div>
         ))}
@@ -288,34 +302,34 @@ export default function DashboardPage() {
             <Plus size={20} />
           </div>
           <div>
-            <h2 className="text-xl font-black">إضافة حركة سريعة</h2>
+            <h2 className="text-xl font-black">{tr("إضافة حركة سريعة","Quick Entry")}</h2>
           </div>
         </div>
 
         {error && <div className="mb-4 rounded-2xl border border-danger-border bg-danger-soft p-3 text-sm text-danger">{error}</div>}
 
         <div className="grid gap-3 lg:grid-cols-12">
-          <FieldWrap label="نوع الحركة" className="lg:col-span-2">
+          <FieldWrap label={tr("نوع الحركة","Movement Type")} className="lg:col-span-2">
             <select
               value={form.entry_type}
               onChange={(e) => setForm({ ...form, entry_type: e.target.value })}
               className="input"
             >
-              <option value="order">طلب</option>
-              <option value="invoice">استحقاق</option>
-              <option value="outgoing">مصروف / خدمة</option>
-              <option value="other">أخرى</option>
+              <option value="order">{tr("طلب","Order")}</option>
+              <option value="invoice">{tr("استحقاق","Receivable")}</option>
+              <option value="outgoing">{tr("مصروف / خدمة","Expense / Service")}</option>
+              <option value="other">{tr("أخرى","Other")}</option>
             </select>
           </FieldWrap>
 
-          <FieldWrap label="الشركة / SAP" className="lg:col-span-3">
+          <FieldWrap label={tr("الشركة / SAP","Company / SAP")} className="lg:col-span-3">
             <select
               required
               value={form.company_id}
               onChange={(e) => setForm({ ...form, company_id: e.target.value })}
               className="input"
             >
-              <option value="">اختار الشركة</option>
+              <option value="">{tr("اختار الشركة","Select Company")}</option>
               {companies
                 .filter((company) => company.party_type === "company")
                 .map((company) => (
@@ -326,7 +340,7 @@ export default function DashboardPage() {
             </select>
           </FieldWrap>
 
-          <FieldWrap label="التاريخ" className="lg:col-span-2">
+          <FieldWrap label={tr("التاريخ","Date")} className="lg:col-span-2">
             <input
               required
               type="date"
@@ -336,7 +350,7 @@ export default function DashboardPage() {
             />
           </FieldWrap>
 
-          <FieldWrap label="تاريخ الاستحقاق" className="lg:col-span-2">
+          <FieldWrap label={tr("تاريخ الاستحقاق","Due Date")} className="lg:col-span-2">
             <input
               type="date"
               value={form.due_date}
@@ -345,7 +359,7 @@ export default function DashboardPage() {
             />
           </FieldWrap>
 
-          <FieldWrap label="المرجع" className="lg:col-span-3">
+          <FieldWrap label={tr("المرجع","Reference")} className="lg:col-span-3">
             <input
               value={form.reference_number}
               onChange={(e) => setForm({ ...form, reference_number: e.target.value })}
@@ -353,7 +367,7 @@ export default function DashboardPage() {
             />
           </FieldWrap>
 
-          <FieldWrap label="الخدمة / البيان" className="lg:col-span-6">
+          <FieldWrap label={tr("الخدمة / البيان","Service / Description")} className="lg:col-span-6">
             <input
               required
               value={form.service_name}
@@ -362,7 +376,7 @@ export default function DashboardPage() {
             />
           </FieldWrap>
 
-          <FieldWrap label={"المطلوب" + (selectedCompany ? " (" + selectedCompany.currency + ")" : "")} className="lg:col-span-2">
+          <FieldWrap label={tr("المطلوب","Due") + (selectedCompany ? " (" + selectedCompany.currency + ")" : "")} className="lg:col-span-2">
             <input
               required
               min="0"
@@ -375,7 +389,7 @@ export default function DashboardPage() {
             />
           </FieldWrap>
 
-          <FieldWrap label="المستلم الآن" className="lg:col-span-2">
+          <FieldWrap label={tr("المستلم الآن","Received Now")} className="lg:col-span-2">
             <input
               min="0"
               step="0.01"
@@ -387,7 +401,7 @@ export default function DashboardPage() {
             />
           </FieldWrap>
 
-          <FieldWrap label="الباقي تلقائياً" className="lg:col-span-2">
+          <FieldWrap label={tr("الباقي تلقائياً","Remaining Automatically")} className="lg:col-span-2">
             <div className="input flex items-center font-black text-brand">
               {selectedCompany
                 ? money(
@@ -398,7 +412,7 @@ export default function DashboardPage() {
             </div>
           </FieldWrap>
 
-          <FieldWrap label="ملاحظات" className="lg:col-span-9">
+          <FieldWrap label={tr("ملاحظات","Notes")} className="lg:col-span-9">
             <input
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
@@ -411,7 +425,7 @@ export default function DashboardPage() {
               disabled={saving || loading}
               className="w-full rounded-2xl bg-brand px-5 py-3 font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
             >
-              {saving ? "جاري الحفظ..." : "إضافة الحركة"}
+              {saving ? tr("جاري الحفظ...","Saving...") : tr("إضافة الحركة","Add Movement")}
             </button>
           </div>
         </div>
@@ -421,7 +435,7 @@ export default function DashboardPage() {
         <div className="border-b border-border p-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
-              <h2 className="text-xl font-black">سجل الحركات</h2>
+              <h2 className="text-xl font-black">{tr("سجل الحركات","Movement History")}</h2>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
@@ -430,25 +444,25 @@ export default function DashboardPage() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="بحث..."
+                  placeholder={tr("بحث...","Search...")}
                   className="input pr-9"
                 />
               </div>
 
               <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="input">
-                <option value="all">كل الأنواع</option>
-                <option value="order">طلب</option>
-                <option value="invoice">استحقاق</option>
-                <option value="outgoing">مصروف / خدمة</option>
-                <option value="other">أخرى</option>
+                <option value="all">{tr("كل الأنواع","All Types")}</option>
+                <option value="order">{tr("طلب","Order")}</option>
+                <option value="invoice">{tr("استحقاق","Receivable")}</option>
+                <option value="outgoing">{tr("مصروف / خدمة","Expense / Service")}</option>
+                <option value="other">{tr("أخرى","Other")}</option>
               </select>
 
               <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input">
-                <option value="all">كل الحالات</option>
-                <option value="paid">مسدد</option>
-                <option value="partial">جزئي</option>
-                <option value="unpaid">غير مسدد</option>
-                <option value="overdue">متأخر</option>
+                <option value="all">{tr("كل الحالات","All Statuses")}</option>
+                <option value="paid">{tr("مسدد","Paid")}</option>
+                <option value="partial">{tr("جزئي","Partial")}</option>
+                <option value="unpaid">{tr("غير مسدد","Unpaid")}</option>
+                <option value="overdue">{tr("متأخر","Overdue")}</option>
               </select>
 
               <select
@@ -459,7 +473,7 @@ export default function DashboardPage() {
                 }}
                 className="input"
               >
-                <option value="all">كل الشركات</option>
+                <option value="all">{tr("كل الشركات","All Companies")}</option>
                 {companies
                   .filter((company) => company.party_type === "company")
                   .map((company) => (
@@ -477,7 +491,7 @@ export default function DashboardPage() {
                 }}
                 className="input"
               >
-                <option value="all">كل الأشخاص</option>
+                <option value="all">{tr("كل الأشخاص","All People")}</option>
                 {companies
                   .filter((company) => company.party_type === "person")
                   .map((company) => (
@@ -491,27 +505,27 @@ export default function DashboardPage() {
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-muted-foreground">جاري تحميل الحركات...</div>
+          <div className="p-12 text-center text-muted-foreground">{tr("جاري تحميل الحركات...","Loading movements...")}</div>
         ) : filteredRows.length === 0 ? (
           <div className="p-12 text-center">
             <ReceiptText className="mx-auto mb-3 text-muted-foreground" size={40} />
-            <p className="font-bold">ماكو حركات حالياً</p>
+            <p className="font-bold">{tr("ماكو حركات حالياً","No movements yet")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1180px] text-sm">
               <thead className="bg-surface-2 text-muted-foreground">
                 <tr>
-                  <th className="p-4 text-right">النوع</th>
-                  <th className="p-4 text-right">الشركة</th>
+                  <th className="p-4 text-right">{tr("النوع","Type")}</th>
+                  <th className="p-4 text-right">{tr("الشركة","Company")}</th>
                   <th className="p-4 text-right">SAP</th>
-                  <th className="p-4 text-right">التاريخ</th>
-                  <th className="p-4 text-right">الخدمة / البيان</th>
-                  <th className="p-4 text-right">المطلوب</th>
-                  <th className="p-4 text-right">المستلم</th>
-                  <th className="p-4 text-right">الباقي</th>
-                  <th className="p-4 text-right">الحالة</th>
-                  <th className="p-4 text-right">إجراء</th>
+                  <th className="p-4 text-right">{tr("التاريخ","Date")}</th>
+                  <th className="p-4 text-right">{tr("الخدمة / البيان","Service / Description")}</th>
+                  <th className="p-4 text-right">{tr("المطلوب","Due")}</th>
+                  <th className="p-4 text-right">{tr("المستلم","Received")}</th>
+                  <th className="p-4 text-right">{tr("الباقي","Remaining")}</th>
+                  <th className="p-4 text-right">{tr("الحالة","Status")}</th>
+                  <th className="p-4 text-right">{tr("إجراء","Action")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -519,7 +533,7 @@ export default function DashboardPage() {
                   <tr key={row.id} className="transition hover:bg-surface-2">
                     <td className="p-4">
                       <span className="rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand">
-                        {ENTRY_LABELS[row.entry_type]}
+                        {tr(ENTRY_LABELS[row.entry_type], ENTRY_LABELS_EN[row.entry_type])}
                       </span>
                     </td>
                     <td className="p-4 font-bold">{row.company_name}</td>
@@ -547,7 +561,7 @@ export default function DashboardPage() {
                         </button>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-brand">
-                          <CheckCircle2 size={15} /> مكتمل
+                          <CheckCircle2 size={15} /> {tr("مكتمل","Completed")}
                         </span>
                       )}
                     </td>
@@ -582,6 +596,7 @@ function PaymentModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { tr } = useLanguage();
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(today());
   const [reference, setReference] = useState("");
@@ -594,12 +609,12 @@ function PaymentModal({
     const value = Number(amount);
 
     if (!value || value <= 0) {
-      setError("اكتب مبلغ القبض.");
+      setError(tr("اكتب مبلغ القبض.","Enter the payment amount."));
       return;
     }
 
     if (value > Number(row.remaining_amount)) {
-      setError("مبلغ القبض أكبر من الباقي على هذا السطر.");
+      setError(tr("مبلغ القبض أكبر من الباقي على هذا السطر.","Payment amount exceeds the remaining balance."));
       return;
     }
 
@@ -608,7 +623,7 @@ function PaymentModal({
 
     const { data } = await supabasePersistent.auth.getUser();
     if (!data.user) {
-      setError("انتهت الجلسة.");
+      setError(tr("انتهت الجلسة.","Session expired."));
       setSaving(false);
       return;
     }
@@ -628,8 +643,8 @@ function PaymentModal({
       setError(insertError.message);
     } else {
       const newRemaining = Math.max(Number(row.remaining_amount) - value, 0);
-      toast.success("تم تسجيل القبض وتحديث الرصيد ✓", {
-        description: row.company_name + " • استلام " + money(value, row.currency) + " • الباقي " + money(newRemaining, row.currency),
+      toast.success(tr("تم تسجيل القبض وتحديث الرصيد ✓","Payment recorded and balance updated ✓"), {
+        description: row.company_name + " • " + tr("استلام","Receipt") + " " + money(value, row.currency) + " • " + tr("الباقي","Remaining") + " " + money(newRemaining, row.currency),
         duration: 4500,
       });
       window.dispatchEvent(new Event("spc-movement-created"));
@@ -644,7 +659,7 @@ function PaymentModal({
       <form onSubmit={submit} className="w-full max-w-lg rounded-3xl border border-border bg-surface p-6 shadow-2xl">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-black">تسجيل قبض</h2>
+            <h2 className="text-xl font-black">{tr("تسجيل قبض","Record Payment")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{row.company_name} — {row.service_name}</p>
           </div>
           <button type="button" onClick={onClose} className="rounded-xl p-2 hover:bg-surface-2">
@@ -654,17 +669,17 @@ function PaymentModal({
 
         <div className="mb-5 grid grid-cols-2 gap-3 rounded-2xl bg-surface-2 p-4">
           <div>
-            <p className="text-xs text-muted-foreground">الباقي حالياً</p>
+            <p className="text-xs text-muted-foreground">{tr("الباقي حالياً","Current Balance")}</p>
             <p className="mt-1 font-black">{money(row.remaining_amount, row.currency)}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">المستلم سابقاً</p>
+            <p className="text-xs text-muted-foreground">{tr("المستلم سابقاً","Previously Received")}</p>
             <p className="mt-1 font-bold text-brand">{money(row.received_amount, row.currency)}</p>
           </div>
         </div>
 
         <div className="grid gap-4">
-          <FieldWrap label="مبلغ القبض">
+          <FieldWrap label={tr("مبلغ القبض","Payment Amount")}>
             <input
               autoFocus
               required
@@ -677,20 +692,20 @@ function PaymentModal({
               className="input"
             />
           </FieldWrap>
-          <FieldWrap label="التاريخ">
+          <FieldWrap label={tr("التاريخ","Date")}>
             <input required type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input" />
           </FieldWrap>
-          <FieldWrap label="رقم المرجع">
-            <input value={reference} onChange={(e) => setReference(e.target.value)} className="input" placeholder="اختياري" />
+          <FieldWrap label={tr("رقم المرجع","Reference Number")}>
+            <input value={reference} onChange={(e) => setReference(e.target.value)} className="input" placeholder={tr("اختياري","Optional")} />
           </FieldWrap>
-          <FieldWrap label="ملاحظات">
-            <input value={notes} onChange={(e) => setNotes(e.target.value)} className="input" placeholder="اختياري" />
+          <FieldWrap label={tr("ملاحظات","Notes")}>
+            <input value={notes} onChange={(e) => setNotes(e.target.value)} className="input" placeholder={tr("اختياري","Optional")} />
           </FieldWrap>
         </div>
 
         {amount && (
           <div className="mt-4 rounded-2xl bg-brand-soft p-4">
-            <p className="text-xs text-muted-foreground">الباقي بعد القبض</p>
+            <p className="text-xs text-muted-foreground">{tr("الباقي بعد القبض","Balance After Payment")}</p>
             <p className="mt-1 text-lg font-black text-brand">
               {money(Math.max(Number(row.remaining_amount) - Number(amount || 0), 0), row.currency)}
             </p>
@@ -703,7 +718,7 @@ function PaymentModal({
           disabled={saving}
           className="mt-5 w-full rounded-2xl bg-brand py-3.5 font-bold text-white hover:bg-brand-hover disabled:opacity-60"
         >
-          {saving ? "جاري الحفظ..." : "تأكيد القبض"}
+          {saving ? tr("جاري الحفظ...","Saving...") : tr("تأكيد القبض","Confirm Payment")}
         </button>
       </form>
     </div>
@@ -752,6 +767,7 @@ function Summary({
 }
 
 function StatusBadge({ status }: { status: AccountRow["payment_status"] }) {
+  const { tr } = useLanguage();
   const styles =
     status === "overdue"
       ? "bg-danger-soft text-danger"
@@ -759,5 +775,5 @@ function StatusBadge({ status }: { status: AccountRow["payment_status"] }) {
         ? "bg-surface-inset text-muted-foreground"
         : "bg-brand-soft text-brand";
 
-  return <span className={"rounded-full px-3 py-1 text-xs font-bold " + styles}>{STATUS_LABELS[status]}</span>;
+  return <span className={"rounded-full px-3 py-1 text-xs font-bold " + styles}>{tr(STATUS_LABELS[status], STATUS_LABELS_EN[status])}</span>;
 }
