@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="ar"
+      lang="ar-u-nu-latn"
       dir="rtl"
       className={`scroll-smooth ${thmanyahSans.variable} ${thmanyahSerifText.variable} ${thmanyahSerifDisplay.variable}`}
     >
