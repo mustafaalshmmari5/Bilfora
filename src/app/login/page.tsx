@@ -70,8 +70,9 @@ export default function LoginPage() {
                 <UserRound className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={17} />
                 <input
                   type="text"
+                  name="spc-login-user"
                   required
-                  autoComplete="username"
+                  autoComplete="off"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full rounded-2xl border border-border bg-surface-2 py-3.5 pr-11 pl-4 outline-none focus:border-brand"
