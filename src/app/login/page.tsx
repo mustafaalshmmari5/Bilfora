@@ -56,9 +56,6 @@ export default function LoginPage() {
             <div className="absolute inset-x-0 bottom-0 h-[48%] opacity-35">
               <div className="absolute bottom-[-6%] left-[-12%] right-[-12%] h-full bg-[linear-gradient(rgba(101,214,255,.28)_1px,transparent_1px),linear-gradient(90deg,rgba(101,214,255,.28)_1px,transparent_1px)] bg-[size:42px_42px] [transform:perspective(520px)_rotateX(62deg)_scale(1.4)] [transform-origin:bottom]" />
             </div>
-            <div className="absolute left-[8%] top-[38%] h-4 w-4 rotate-45 border border-white/45 bg-white/20" />
-            <div className="absolute right-[18%] top-[34%] h-3 w-3 rotate-45 bg-white/80" />
-            <div className="absolute left-[19%] bottom-[20%] h-3 w-3 rotate-45 bg-white/80" />
           </div>
 
           <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
