@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   BarChart3,
   Box,
-  CircleDot,
   Eye,
   EyeOff,
   Lock,
@@ -56,52 +55,60 @@ export default function LoginPage() {
     <main className="relative min-h-screen overflow-hidden bg-surface-2">
       <ThemeToggle compact className="fixed left-4 top-4 z-30 shadow-lg" />
 
-      <div className="grid min-h-screen lg:grid-cols-2">
-        <section className="relative hidden overflow-hidden bg-gradient-to-br from-[#5b14b7] via-[#43158c] to-[#0d3773] p-10 text-white lg:flex lg:items-center lg:justify-center">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute -left-24 top-16 h-72 w-72 rounded-full border border-white/30" />
-            <div className="absolute -right-20 bottom-10 h-80 w-80 rounded-full border border-cyan-300/30" />
-            <div className="absolute bottom-0 left-0 right-0 h-[42%] bg-[linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:42px_42px] [transform:perspective(500px)_rotateX(62deg)_scale(1.35)] [transform-origin:bottom]" />
+      <div className="grid min-h-screen lg:grid-cols-2" dir="ltr">
+        <section className="relative hidden overflow-hidden bg-gradient-to-br from-[#4b0aa8] via-[#2c116f] to-[#082f66] p-10 text-white lg:flex lg:items-center lg:justify-center" dir="rtl">
+          <div className="absolute inset-0">
+            <div className="absolute inset-x-0 bottom-0 h-[48%] opacity-35">
+              <div className="absolute bottom-[-6%] left-[-12%] right-[-12%] h-full bg-[linear-gradient(rgba(101,214,255,.28)_1px,transparent_1px),linear-gradient(90deg,rgba(101,214,255,.28)_1px,transparent_1px)] bg-[size:42px_42px] [transform:perspective(520px)_rotateX(62deg)_scale(1.4)] [transform-origin:bottom]" />
+            </div>
+            <div className="absolute left-[8%] top-[38%] h-4 w-4 rotate-45 border border-white/45 bg-white/20" />
+            <div className="absolute right-[18%] top-[34%] h-3 w-3 rotate-45 bg-white/80" />
+            <div className="absolute left-[19%] bottom-[20%] h-3 w-3 rotate-45 bg-white/80" />
           </div>
 
           <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
-            <div className="relative mb-9">
-              <div className="absolute -left-32 -top-10 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur">
-                <BarChart3 size={38} />
+            <div className="relative mb-5 w-full">
+              <div className="absolute -left-5 -top-12 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
+                <div className="flex items-end gap-1.5">
+                  <span className="h-4 w-3 rounded-sm bg-white/45" />
+                  <span className="h-8 w-3 rounded-sm bg-white/70" />
+                  <span className="h-12 w-3 rounded-sm bg-white" />
+                </div>
               </div>
-              <div className="absolute -right-32 top-14 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur">
-                <TrendingUp size={38} />
+              <div className="absolute -right-8 -top-8 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
+                <TrendingUp size={34} />
               </div>
-              <div className="absolute -left-28 top-32 rounded-full border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur">
-                <PieChart size={34} />
+              <div className="absolute -left-2 top-28 rounded-full border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
+                <PieChart size={36} />
+              </div>
+              <div className="absolute -right-6 top-32 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
+                <BarChart3 size={36} />
               </div>
 
-              <div className="flex items-center justify-center gap-4">
-                <CircleDot className="h-20 w-20" strokeWidth={1.6} />
-                <span className="text-7xl font-light tracking-tight">SPC</span>
+              <div className="mx-auto flex w-[260px] items-center justify-center rounded-3xl p-3">
+                <img
+                  src="/spc-logo.svg"
+                  alt="SPC"
+                  className="h-auto w-full brightness-0 invert"
+                />
               </div>
             </div>
 
-            <h1 className="max-w-lg text-3xl font-black leading-[1.55] md:text-4xl">
+            <h1 className="mt-1 max-w-lg text-3xl font-black leading-[1.55] md:text-[38px]">
               شركة بوابة الحلول المبتكرة
               <br />
               للشركات والمتابعات المالية
             </h1>
 
-            <div className="mt-12 flex items-center gap-8 text-white/75">
+            <div className="mt-8 flex items-center gap-9 text-white/80">
               <Box size={28} />
-              <Plus size={26} />
-              <div className="h-11 w-11 rotate-45 rounded-xl border border-white/30 bg-white/10" />
-              <div className="flex items-end gap-1.5">
-                <span className="h-4 w-3 rounded-sm bg-white/50" />
-                <span className="h-7 w-3 rounded-sm bg-white/70" />
-                <span className="h-10 w-3 rounded-sm bg-white" />
-              </div>
+              <Plus size={25} />
+              <div className="h-10 w-10 rotate-45 rounded-xl border border-white/30 bg-white/10 shadow-xl" />
             </div>
           </div>
         </section>
 
-        <section className="relative flex min-h-screen items-center justify-center bg-background px-5 py-12 sm:px-8">
+        <section className="relative flex min-h-screen items-center justify-center bg-background px-5 py-12 sm:px-8" dir="rtl">
           <div className="w-full max-w-md">
             <div className="mb-7 flex justify-center">
               <img
