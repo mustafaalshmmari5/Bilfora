@@ -3,14 +3,9 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  BarChart3,
-  Box,
   Eye,
   EyeOff,
   Lock,
-  PieChart,
-  Plus,
-  TrendingUp,
   UserRound,
 } from "lucide-react";
 import { supabasePersistent } from "@/lib/supabase-clients";
@@ -68,23 +63,6 @@ export default function LoginPage() {
 
           <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
             <div className="relative mb-5 w-full">
-              <div className="absolute -left-5 -top-12 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
-                <div className="flex items-end gap-1.5">
-                  <span className="h-4 w-3 rounded-sm bg-white/45" />
-                  <span className="h-8 w-3 rounded-sm bg-white/70" />
-                  <span className="h-12 w-3 rounded-sm bg-white" />
-                </div>
-              </div>
-              <div className="absolute -right-8 -top-8 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
-                <TrendingUp size={34} />
-              </div>
-              <div className="absolute -left-2 top-28 rounded-full border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
-                <PieChart size={36} />
-              </div>
-              <div className="absolute -right-6 top-32 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm">
-                <BarChart3 size={36} />
-              </div>
-
               <div className="mx-auto flex w-[260px] items-center justify-center rounded-3xl p-3">
                 <img
                   src="/spc-logo.svg"
@@ -100,11 +78,6 @@ export default function LoginPage() {
               للشركات والمتابعات المالية
             </h1>
 
-            <div className="mt-8 flex items-center gap-9 text-white/80">
-              <Box size={28} />
-              <Plus size={25} />
-              <div className="h-10 w-10 rotate-45 rounded-xl border border-white/30 bg-white/10 shadow-xl" />
-            </div>
           </div>
         </section>
 
