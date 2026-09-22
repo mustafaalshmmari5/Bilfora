@@ -52,12 +52,6 @@ export default function LoginPage() {
 
       <div className="grid min-h-screen lg:grid-cols-2" dir="ltr">
         <section className="relative hidden overflow-hidden bg-gradient-to-br from-[#4b0aa8] via-[#2c116f] to-[#082f66] p-10 text-white lg:flex lg:items-center lg:justify-center" dir="rtl">
-          <div className="absolute inset-0">
-            <div className="absolute inset-x-0 bottom-0 h-[48%] opacity-35">
-              <div className="absolute bottom-[-6%] left-[-12%] right-[-12%] h-full bg-[linear-gradient(rgba(101,214,255,.28)_1px,transparent_1px),linear-gradient(90deg,rgba(101,214,255,.28)_1px,transparent_1px)] bg-[size:42px_42px] [transform:perspective(520px)_rotateX(62deg)_scale(1.4)] [transform-origin:bottom]" />
-            </div>
-          </div>
-
           <div className="relative z-10 flex w-full max-w-xl flex-col items-center text-center">
             <div className="relative mb-5 w-full">
               <div className="mx-auto flex w-[260px] items-center justify-center rounded-3xl p-3">
